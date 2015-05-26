@@ -14,3 +14,5 @@
 4. To test library, stay in the build directory and execute
 		./example_write
 		./example_read
+
+5. To use the library, check the examples.
