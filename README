@@ -1,0 +1,16 @@
+1. To use the library you need installed ROOT and exported ROOTSYS variable
+2. Easy way to install library:
+
+	git clone https://github.com/dziadu/SmartFactory
+	mkdir SmartFactory/build
+	cd SmartFactory/build
+	cmake ..
+	sudo make install
+
+3. To install in custom location, replace two last steps with:
+	cmake .. -DCMAKE_INSTALL_PREFIX=my_custom_location
+	make install
+
+4. To test library, stay in the build directory and execute
+		./example_write
+		./example_read

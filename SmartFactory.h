@@ -101,7 +101,7 @@ public:
 	bool exportStructure(const char * filename, bool verbose = false);
 
 	bool importStructure(TFile * target, bool verbose = false);
-	bool importStructure(const char * filename, bool verbose = false);
+	TFile * importStructure(const char * filename, bool verbose = false);
 
 	void rename(const std::string & newname);
 	void chdir(const std::string & newdir);

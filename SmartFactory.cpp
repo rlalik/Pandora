@@ -191,13 +191,19 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
 	return true;
 }
 
-bool SmartFactory::importStructure(const char * filename, bool verbose)
+TFile * SmartFactory::importStructure(const char * filename, bool verbose)
 {
 	source = new TFile(filename, "READ");
 
 	bool res = importStructure(source, verbose);
 
-	return res;
+	if (!res)
+	{
+		source->Close();
+		source = nullptr;
+	}
+
+	return source;
 }
 
 TObject* SmartFactory::getObject(const std::string& name, const std::string & dir) const
