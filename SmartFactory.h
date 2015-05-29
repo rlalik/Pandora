@@ -124,6 +124,7 @@ public:
 
 	// global modifiers
 	void setTitleForAll(const TString & title);
+	std::string format(const std::string & name) const;
 
 private:
 	void operator+(const SmartFactory &) {};
@@ -131,7 +132,6 @@ private:
 
 	void renameAllObjects();
 
-	std::string format(const std::string & name) const;
 	std::string placeholder(const std::string & pattern, char c, const std::string & value) const;
 
 	static void splitDir(const std::string & fullname, std::string & name, std::string & dir);
