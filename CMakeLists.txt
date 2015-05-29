@@ -12,35 +12,6 @@ include(${ROOT_USE_FILE})
 include_directories(${ROOT_INCLUDE_DIR})
 link_directories(${ROOT_LIBRARIES_DIR})
 
-# ROOT-TOOLS library
-set(ROOTTOOLS_INCLUDE_DIR "" CACHE FILEPATH "Path to RootTools includes")
-# if(NOT ROOTTOOLS_INCLUDE_DIR/RootTools.h)
-# 	message(SEND_ERROR "Can't find RootTools.h in ${ROOTTOOLS_INCLUDE_DIR}")
-# endif()
-include_directories(${ROOTTOOLS_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
-get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-
-set(CMAKE_REQUIRED_INCLUDES ${dirs})
-
-include(CheckIncludeFileCXX)
-unset (HAVE_ROOTTOOLS CACHE)
-
-check_include_file_cxx(RootTools.h HAVE_ROOTTOOLS)
-if(HAVE_ROOTTOOLS)
-	find_library(ROOTTOOLS_LIB RootTools HINTS ${ROOTTOOLS_INCLUDE_DIR}/..)
-
-	if(NOT ROOTTOOLS_LIB)
-		message(SEND_ERROR "Can't find RootTools library")
-	else()
-		get_filename_component(ROOTTOOLS_LIBRARY_DIR ${ROOTTOOLS_LIB} DIRECTORY)
-		link_directories(${ROOTTOOLS_LIBRARY_DIR})
-		set(ROOTTOOLS_LIBRARY RootTools)
-	endif(NOT ROOTTOOLS_LIB)
-endif(HAVE_ROOTTOOLS)
-
-configure_file(sf_config.h.in sf_config.h @ONLY)
-
 # The version number.
 set (library_VERSION_MAJOR 0)
 set (library_VERSION_MINOR 1)
@@ -78,10 +49,10 @@ set_target_properties(${PRONAME} PROPERTIES
 #set_target_properties (tsetup PROPERTIES LINK_FLAGS ${root_LDFLAGS})
 
 add_executable(example_write examples/example_write.cpp)
-target_link_libraries(example_write SmartFactory ${ROOT_LIBRARIES} ${ROOTTOOLS_LIBRARY})
+target_link_libraries(example_write SmartFactory ${ROOT_LIBRARIES})
 
 add_executable(example_read examples/example_read.cpp)
-target_link_libraries(example_read SmartFactory ${ROOT_LIBRARIES} ${ROOTTOOLS_LIBRARY})
+target_link_libraries(example_read SmartFactory ${ROOT_LIBRARIES})
 
 install(TARGETS ${PRONAME}
 	RUNTIME DESTINATION bin

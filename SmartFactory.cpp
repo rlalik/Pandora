@@ -29,10 +29,42 @@
 
 #include "SmartFactory.h"
 
-#include "sf_config.h"
-#ifdef HAVE_ROOTTOOLS
-#include "RootTools.h"
-#endif /*HAVE_ROOTTOOLS*/
+float Normalize(TH1 * h, TH1 * href, bool extended = false)
+{
+	if (!extended)
+	{
+		Float_t integral_ref = href->Integral();
+		Float_t integral_cur = h->Integral();
+
+		h->Scale(integral_ref/integral_cur);
+		return integral_ref/integral_cur;
+	}
+	else
+	{
+		TH1 * hc_mask = (TH1*)h->Clone("___XXX___hc_mask");
+		TH1 * hr_mask = (TH1*)href->Clone("___XXX___hr_mask");
+
+		hc_mask->Divide(h);
+		hr_mask->Divide(href);
+
+		TH1 * hc_temp = (TH1*)h->Clone("___XXX___hc_temp");
+		TH1 * hr_temp = (TH1*)href->Clone("___XXX___hr_temp");
+
+		hc_temp->Multiply(hr_mask);
+		hr_temp->Multiply(hc_mask);
+
+		float scale = Normalize(hc_temp, hr_temp);
+		h->Scale( scale, 0 );
+
+		hc_mask->Delete();
+		hr_mask->Delete();
+		hc_temp->Delete();
+		hr_temp->Delete();
+
+		return scale;
+	}
+	return 0.;
+}
 
 SmartFactory::SmartFactory(const std::string& name) :
 factory_name(name), dirname(name), source(nullptr)
@@ -549,17 +581,13 @@ SmartFactory & SmartFactory::operator/=(Float_t num)
 
 void SmartFactory::norm(const SmartFactory& fa, bool extended)
 {
-#ifdef HAVE_ROOTTOOLS
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
 		if (regobjs[i]->InheritsFrom("TH1"))
 		{
-			RootTools::Normalize( ((TH1*)regobjs[i]), ((TH1*)fa.regobjs[i]), extended);
+			Normalize( ((TH1*)regobjs[i]), ((TH1*)fa.regobjs[i]), extended);
 		}
 	}
-#else
-	std::cerr << "SmartFactory has been compiled w/o RootTools support, therfore no extended normalization available" << std::endl;
-#endif /*HAVE_ROOTTOOLS*/
 }
 
 void SmartFactory::norm(Float_t num)
