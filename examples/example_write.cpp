@@ -1,4 +1,4 @@
-#include "../SmartFactory.h"
+#include "SmartFactory.h"
 
 int main()
 {

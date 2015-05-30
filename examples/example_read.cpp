@@ -3,7 +3,7 @@
 #undef NDEBUG
 #include <assert.h>
 
-#include "../SmartFactory.h"
+#include "SmartFactory.h"
 
 #include "TFile.h"
 

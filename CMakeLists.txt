@@ -4,12 +4,20 @@ project(SmartFactory)
 # set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Modules" ${CMAKE_MODULE_PATH})
 # find_package(ROOT)
 
+set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "object code libraries (lib)")
+set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "object code libraries (lib)")
+# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib CACHE PATH "object code libraries (lib)")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 # ROOT
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-find_package(ROOT REQUIRED COMPONENTS Core Cling RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread)
+find_package(ROOT QUIET
+	REQUIRED COMPONENTS Core  RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread
+	OPTIONAL_COMPONENTS Cling Cint)
 include(${ROOT_USE_FILE})
 
-include_directories(${ROOT_INCLUDE_DIR})
+include_directories(${ROOT_INCLUDE_DIR} inc)
 link_directories(${ROOT_LIBRARIES_DIR})
 
 # The version number.
@@ -20,48 +28,20 @@ set (library_VERSION_PATCH 1)
 set (VERSION ${library_VERSION_MAJOR}.${library_VERSION_MINOR}.${library_VERSION_PATCH})
 
 set(PRONAME SmartFactory)
-##### find programs
 
-set(library_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/SmartFactory.cpp) # ${CMAKE_CURRENT_SOURCE_DIR}/
-set(library_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/SmartFactory.h) #
-
-set(library_DICT G__${PRONAME})
-set(library_LINKDEF ${CMAKE_CURRENT_SOURCE_DIR}/LinkDef.h)
-
-# ROOT_GENERATE_DICTIONARY(
-# 	"${library_HDRS}" "${library_LINKDEF}"
-# 	"${library_DICT}" "${INCLUE_DIRECTORIES}"
-# )
-
-ROOT_GENERATE_DICTIONARY(
-	"${library_DICT}" "${library_HDRS}" LINKDEF "${library_LINKDEF}" "${INCLUE_DIRECTORIES}"
-)
-
-add_library(${PRONAME} SHARED ${library_SRCS} ${library_DICT})
+ROOT_STANDARD_LIBRARY_PACKAGE(${PRONAME} DEPENDENCIES ${ROOT_LIBRARIES})
 
 string(REGEX REPLACE "/" "." ROOT_VERSION_DOT ${ROOT_VERSION})
 
-target_link_libraries(${PRONAME} ${ROOT_LIBRARIES} ASImage)
 set_target_properties(${PRONAME} PROPERTIES
 	SOVERSION ${ROOT_VERSION_DOT}
 	PUBLIC_HEADER SmartFactory.h)
 
-#set_target_properties (tsetup PROPERTIES LINK_FLAGS ${root_LDFLAGS})
-
 add_executable(example_write examples/example_write.cpp)
-target_link_libraries(example_write SmartFactory ${ROOT_LIBRARIES})
+target_link_libraries(example_write ${ROOT_LIBRARIES} SmartFactory)
 
 add_executable(example_read examples/example_read.cpp)
-target_link_libraries(example_read SmartFactory ${ROOT_LIBRARIES})
-
-install(TARGETS ${PRONAME}
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	PUBLIC_HEADER DESTINATION include)
-
-install(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/${library_DICT}_rdict.pcm
-	DESTINATION lib)
+target_link_libraries(example_read ${ROOT_LIBRARIES} SmartFactory)
 
 # messages
 MESSAGE(STATUS "<<< Configuration >>>
