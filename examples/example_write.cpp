@@ -29,5 +29,5 @@ int main()
 	fac->listRegisterdObjects();
 
 	// export factory to file
-	fac->exportStructure("example.root", false);
+	fac->exportStructure("example.root", true);
 }

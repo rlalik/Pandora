@@ -132,7 +132,7 @@ bool SmartFactory::write(TFile* f, bool verbose)
 		cdDir(f, dir.c_str());
 
 		if (verbose)
-			std::cout << std::left << std::setw(70) << std::string(" + Writing " + hname + " ... ");
+			std::cout << std::left << std::setw(70) << std::string(" + Writing " + regnames[i] + " ... ");
 
 		int res = regobjs[i]->Write(0, TObject::kOverwrite);
 
@@ -289,7 +289,6 @@ TObject* SmartFactory::getObject(TDirectory * srcdir, const std::string& name, c
 		TDirectory * d = gDirectory;
 
 		d->GetObject(name.c_str(), ptr);
-
 		srcdir->cd();
 	}
 
@@ -318,9 +317,15 @@ bool SmartFactory::cdDir(TFile * target, const char * dir, bool automkdir) const
 		return false;
 
 	if (!target->GetDirectory(dir))
+	{
 		if (automkdir)
 			if (target->mkdir(dir, dir))
 				return target->cd(dir);
+	}
+	else
+	{
+		return target->cd(dir);
+	}
 
 	return false;
 }
