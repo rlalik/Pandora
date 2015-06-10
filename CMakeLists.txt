@@ -1,47 +1,73 @@
 cmake_minimum_required(VERSION 2.6)
-project(SmartFactory)
+project(SmartFactory C CXX)
+set(CAPS_PROJECT_NAME SMARTFACTORY)
 
-# set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Modules" ${CMAKE_MODULE_PATH})
-# find_package(ROOT)
+##### the version number
+set (VERSION_MAJOR 0)
+set (VERSION_MINOR 1)
+set (VERSION_PATCH 1)
+set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
+##### set paths
+if(WIN32 AND NOT CYGWIN)
+	set(DEF_CMAKE_INSTALL_CMAKEDIR CMake)
+else()
+	set(DEF_CMAKE_INSTALL_CMAKEDIR lib/CMake/${CMAKE_PROJECT_NAME})
+endif()
+set(CMAKE_INSTALL_CMAKEDIR ${DEF_CMAKE_INSTALL_CMAKEDIR} CACHE PATH "Installation directory for CMake files")
+set(CMAKE_INSTALL_BINDIR "bin" CACHE PATH "object code libraries (lib)")
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE PATH "object code libraries (lib)")
 set(CMAKE_INSTALL_INCLUDEDIR "include" CACHE PATH "object code libraries (lib)")
-# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib CACHE PATH "object code libraries (lib)")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# ROOT
+##### find ROOT
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT QUIET
 	REQUIRED COMPONENTS Core  RIO Net Hist Graf Graf3d Gpad Tree Rint Postscript Matrix Physics MathCore Thread
 	OPTIONAL_COMPONENTS Cling Cint)
+
 include(${ROOT_USE_FILE})
 
+##### directories
 include_directories(${ROOT_INCLUDE_DIR} inc)
 link_directories(${ROOT_LIBRARIES_DIR})
 
-# The version number.
-set (library_VERSION_MAJOR 0)
-set (library_VERSION_MINOR 1)
-set (library_VERSION_PATCH 1)
+##### make targets
+ROOT_STANDARD_LIBRARY_PACKAGE(SmartFactory DEPENDENCIES ${ROOT_LIBRARIES})
 
-set (VERSION ${library_VERSION_MAJOR}.${library_VERSION_MINOR}.${library_VERSION_PATCH})
+add_subdirectory(examples)
 
-set(PRONAME SmartFactory)
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export(PACKAGE ${CMAKE_PROJECT_NAME})
 
-ROOT_STANDARD_LIBRARY_PACKAGE(${PRONAME} DEPENDENCIES ${ROOT_LIBRARIES})
+include(CMakePackageConfigHelpers)
+configure_package_config_file(Config.cmake.in ${CMAKE_PROJECT_NAME}Config.cmake
+	INSTALL_DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
+	PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_BINDIR)
 
-string(REGEX REPLACE "/" "." ROOT_VERSION_DOT ${ROOT_VERSION})
+write_basic_package_version_file(${CMAKE_PROJECT_NAME}ConfigVersion.cmake
+	VERSION ${PROJECT_VERSION}
+	COMPATIBILITY SameMajorVersion)
+                                 
+install(FILES 
+	${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
+	${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
+	DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
 
-set_target_properties(${PRONAME} PROPERTIES
-	SOVERSION ${ROOT_VERSION_DOT}
-	PUBLIC_HEADER SmartFactory.h)
+# Add all targets to the build-tree export set
+export(TARGETS SmartFactory
+	FILE ${CMAKE_PROJECT_NAME}Targets.cmake)
 
-add_executable(example_write examples/example_write.cpp)
-target_link_libraries(example_write ${ROOT_LIBRARIES} SmartFactory)
+# Install the export set for use with the install-tree
+install(TARGETS SmartFactory
+	EXPORT ${CMAKE_PROJECT_NAME}Targets
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	COMPONENT shlib COMPONENT dev)
 
-add_executable(example_read examples/example_read.cpp)
-target_link_libraries(example_read ${ROOT_LIBRARIES} SmartFactory)
+install(EXPORT ${CMAKE_PROJECT_NAME}Targets
+	DESTINATION ${CMAKE_INSTALL_CMAKEDIR} COMPONENT dev)
 
 # messages
 MESSAGE(STATUS "<<< Configuration >>>
@@ -65,6 +91,10 @@ Linker flags:
 Executable      ${CMAKE_EXE_LINKER_FLAGS}
 Module          ${CMAKE_MODULE_LINKER_FLAGS}
 Shared          ${CMAKE_SHARED_LINKER_FLAGS}\n")
+
+foreach(p LIB BIN INCLUDE CMAKE)
+	message(STATUS "CMAKE_INSTALL_${p}DIR: ${CMAKE_INSTALL_${p}DIR}")
+endforeach()
 
 # unset  (ELOG CACHE)
 if (ELOG)
