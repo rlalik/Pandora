@@ -57,10 +57,14 @@ public:
 	// histograms
 	template<class T>
 	T* RegTH1(const char* name, const char* title, int bins, float min, float max, bool sumw2 = true);
+	template<class T>
+	T* RegTH1(const char* name, const char* title, float * arr, bool sumw2 = true);
 
 	template<class T>
 	T* RegTH2(const char* name, const char* title,
 			  int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, bool sumw2 = true);
+	template<class T>
+	T* RegTH2(const char* name, const char* title, float * arrx, float * arry, bool sumw2 = true);
 
 	template<class T>
 	T* RegGraph(const char* name, int points);
@@ -163,11 +167,35 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, float min
 	std::string hname;
 	std::string dir;
 	splitDir(fullname, hname, dir);
-	
+
 	// try to get object from file
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), fulltitle.c_str(), bins, min, max);
+		if (sumw2) h->Sumw2();
+	}
+	if (h) {
+		rawnames.push_back(name);
+		regnames.push_back(fullname);
+		regobjs.push_back(h);
+	}
+	return h;
+}
+
+template<class T>
+T* SmartFactory::RegTH1(const char* name, const char* title, float * arr, bool sumw2)
+{
+	std::string fullname = format(name);
+	std::string fulltitle = format(title);
+
+	std::string hname;
+	std::string dir;
+	splitDir(fullname, hname, dir);
+
+	// try to get object from file
+	T * h = (T*)getObject(hname, dir);
+	if (!h) {
+		h = new T(hname.c_str(), fulltitle.c_str(), arr);
 		if (sumw2) h->Sumw2();
 	}
 	if (h) {
@@ -186,11 +214,34 @@ T* SmartFactory::RegTH2(const char* name, const char* title,
 	std::string hname;
 	std::string dir;
 	splitDir(fullname, hname, dir);
-	
+
 	// try to get object from file
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax);
+		if (sumw2) h->Sumw2();
+	}
+	if (h) {
+		rawnames.push_back(name);
+		regnames.push_back(fullname);
+		regobjs.push_back(h);
+	}
+	return h;
+}
+
+template<class T>
+T* SmartFactory::RegTH2(const char* name, const char* title,
+		  float * arrx, float * arry, bool sumw2)
+{
+	std::string fullname = format(name);
+	std::string hname;
+	std::string dir;
+	splitDir(fullname, hname, dir);
+
+	// try to get object from file
+	T * h = (T*)getObject(hname, dir);
+	if (!h) {
+		h = new T(hname.c_str(), title, arrx, arry);
 		if (sumw2) h->Sumw2();
 	}
 	if (h) {
@@ -209,7 +260,7 @@ T* SmartFactory::RegGraph(const char* name, int points)
 	std::string hname;
 	std::string dir;
 	splitDir(fullname, hname, dir);
-	
+
 	// try to get object from file
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
