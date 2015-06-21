@@ -56,15 +56,15 @@ public:
 	// objects creation
 	// histograms
 	template<class T>
-	T* RegTH1(const char* name, const char* title, int bins, float min, float max, bool sumw2 = true);
+	T* RegTH1(const char* name, const char* title, int bins, double min, double max, bool sumw2 = true);
 	template<class T>
-	T* RegTH1(const char* name, const char* title, int bins, float * arr, bool sumw2 = true);
+	T* RegTH1(const char* name, const char* title, int bins, double * arr, bool sumw2 = true);
 
 	template<class T>
 	T* RegTH2(const char* name, const char* title,
-			  int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, bool sumw2 = true);
+			  int xbins, double xmin, double xmax, int ybins, double ymin, double ymax, bool sumw2 = true);
 	template<class T>
-	T* RegTH2(const char* name, const char* title, int xbins, float * xarr, int ybins, float * yarr, bool sumw2 = true);
+	T* RegTH2(const char* name, const char* title, int xbins, double * xarr, int ybins, double * yarr, bool sumw2 = true);
 
 	template<class T>
 	T* RegGraph(const char* name, int points);
@@ -159,7 +159,7 @@ private:
 
 
 template<class T>
-T* SmartFactory::RegTH1(const char* name, const char* title, int bins, float min, float max, bool sumw2)
+T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double min, double max, bool sumw2)
 {
 	std::string fullname = format(name);
 	std::string fulltitle = format(title);
@@ -183,7 +183,7 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, float min
 }
 
 template<class T>
-T* SmartFactory::RegTH1(const char* name, const char* title, int bins, float * arr, bool sumw2)
+T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double * arr, bool sumw2)
 {
 	std::string fullname = format(name);
 	std::string fulltitle = format(title);
@@ -208,7 +208,7 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, float * a
 
 template<class T>
 T* SmartFactory::RegTH2(const char* name, const char* title,
-		  int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, bool sumw2)
+		  int xbins, double xmin, double xmax, int ybins, double ymin, double ymax, bool sumw2)
 {
 	std::string fullname = format(name);
 	std::string hname;
@@ -231,7 +231,7 @@ T* SmartFactory::RegTH2(const char* name, const char* title,
 
 template<class T>
 T* SmartFactory::RegTH2(const char* name, const char* title,
-		  int xbins, float * xarr, int ybins, float * yarr, bool sumw2)
+		  int xbins, double * xarr, int ybins, double * yarr, bool sumw2)
 {
 	std::string fullname = format(name);
 	std::string hname;
