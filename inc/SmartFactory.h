@@ -58,13 +58,13 @@ public:
 	template<class T>
 	T* RegTH1(const char* name, const char* title, int bins, float min, float max, bool sumw2 = true);
 	template<class T>
-	T* RegTH1(const char* name, const char* title, float * arr, bool sumw2 = true);
+	T* RegTH1(const char* name, const char* title, int bins, float * arr, bool sumw2 = true);
 
 	template<class T>
 	T* RegTH2(const char* name, const char* title,
 			  int xbins, float xmin, float xmax, int ybins, float ymin, float ymax, bool sumw2 = true);
 	template<class T>
-	T* RegTH2(const char* name, const char* title, float * arrx, float * arry, bool sumw2 = true);
+	T* RegTH2(const char* name, const char* title, int xbins, float * xarr, int ybins, float * yarr, bool sumw2 = true);
 
 	template<class T>
 	T* RegGraph(const char* name, int points);
@@ -183,7 +183,7 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, float min
 }
 
 template<class T>
-T* SmartFactory::RegTH1(const char* name, const char* title, float * arr, bool sumw2)
+T* SmartFactory::RegTH1(const char* name, const char* title, int bins, float * arr, bool sumw2)
 {
 	std::string fullname = format(name);
 	std::string fulltitle = format(title);
@@ -195,7 +195,7 @@ T* SmartFactory::RegTH1(const char* name, const char* title, float * arr, bool s
 	// try to get object from file
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
-		h = new T(hname.c_str(), fulltitle.c_str(), arr);
+		h = new T(hname.c_str(), fulltitle.c_str(), bins, arr);
 		if (sumw2) h->Sumw2();
 	}
 	if (h) {
@@ -231,7 +231,7 @@ T* SmartFactory::RegTH2(const char* name, const char* title,
 
 template<class T>
 T* SmartFactory::RegTH2(const char* name, const char* title,
-		  float * arrx, float * arry, bool sumw2)
+		  int xbins, float * xarr, int ybins, float * yarr, bool sumw2)
 {
 	std::string fullname = format(name);
 	std::string hname;
@@ -241,7 +241,7 @@ T* SmartFactory::RegTH2(const char* name, const char* title,
 	// try to get object from file
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
-		h = new T(hname.c_str(), title, arrx, arry);
+		h = new T(hname.c_str(), title, xbins, xarr, ybins, yarr);
 		if (sumw2) h->Sumw2();
 	}
 	if (h) {
