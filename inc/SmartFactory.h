@@ -130,13 +130,14 @@ public:
 	void setTitleForAll(const TString & title);
 	std::string format(const std::string & name) const;
 
+	static std::string placeholder(const std::string & pattern, const std::string & str, const std::string & value);
+	static std::string placeholder(const std::string & pattern, char c, const std::string & value);
+
 private:
 	void operator+(const SmartFactory &) {};
 	void operator-(const SmartFactory &) {};
 
 	void renameAllObjects();
-
-	std::string placeholder(const std::string & pattern, char c, const std::string & value) const;
 
 	static void splitDir(const std::string & fullname, std::string & name, std::string & dir);
 	bool cdDir(TFile * target, const char * dir, bool automkdir = true) const;

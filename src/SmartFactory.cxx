@@ -445,16 +445,30 @@ std::string SmartFactory::format(const std::string & name) const
 	return n2;
 }
 
-std::string SmartFactory::placeholder(const std::string& pattern, char c, const std::string& value) const
+std::string SmartFactory::placeholder(const std::string& pattern, char c, const std::string& value)
 {
 	std::string n = pattern;
 
-	// replace 'c' with 'value'
+	// replace 'c' with "value"
 
 	size_t p = std::string::npos;
 	while ( (p = n.find_first_of(c)) != std::string::npos)
 	{
 		n.replace(p, 1, value);
+	}
+	return n;
+}
+
+std::string SmartFactory::placeholder(const std::string& pattern, const std::string& str, const std::string& value)
+{
+	std::string n = pattern;
+
+	// replace "str" with "value"
+
+	size_t p = std::string::npos;
+	while ( (p = n.find(str)) != std::string::npos)
+	{
+		n.replace(p, str.length(), value);
 	}
 	return n;
 }
