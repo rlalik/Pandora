@@ -18,6 +18,10 @@ int main()
 	TH1F * hist1 = fac->RegTH1<TH1F>("dir1/hist1", "Histogram 1", 100, -5, 5);
 	TH1F * hist2 = fac->RegTH1<TH1F>("hist2", "Histogram 2", 100, -5, 5);
 	TH1F * hist3 = fac->RegTH1<TH1F>("dir1/dir2/hist3", "Histogram 3", 100, -5, 5);
+	TH1F * hist4 = fac->RegTH1<TH1F>("@@@d/hist_@@@a_placeholders", "Histogram 4", 100, -5, 5);
+
+	fac->rename("renamed_factory");
+	fac->chdir("renamed_directory");
 
 	hist1->FillRandom("gaus", 100000);
 	hist2->FillRandom("gaus", 100000);

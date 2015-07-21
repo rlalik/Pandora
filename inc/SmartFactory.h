@@ -30,6 +30,7 @@
 #include <TH2.h>
 #include <TNamed.h>
 #include <TObjArray.h>
+#include <TObjString.h>
 
 
 #define PR(x) std::cout << "++DEBUG: " << #x << " = |" << x << "| (" << __FILE__ << ", " << __LINE__ << ")\n";
@@ -41,14 +42,17 @@ class TFile;
 struct SmartFactoryObj : public TNamed
 {
 	std::vector<std::string> objnames;
+	TObjString objects_name;
+	TObjString directory_name;
+
 	ClassDef(SmartFactoryObj, 1);
 };
 
 class SmartFactory
 {
 public:
-	SmartFactory(const std::string & name);
-	SmartFactory(const std::string & name, const std::string & dir);
+	SmartFactory(const char * name);
+	SmartFactory(const char * name, const char * dir);
 	~SmartFactory();
 
 	inline std::string name() const { return factory_name; }
@@ -107,8 +111,8 @@ public:
 	bool importStructure(TFile * target, bool verbose = false);
 	TFile * importStructure(const char * filename, bool verbose = false);
 
-	void rename(const std::string & newname);
-	void chdir(const std::string & newdir);
+	void rename(const char * newname);
+	void chdir(const char * newdir);
 
 	// operators
 	SmartFactory & operator+=(const SmartFactory & fa);
@@ -144,7 +148,9 @@ private:
 
 private:
 	std::string factory_name;
-	std::string dirname;
+	std::string objects_name;
+	std::string directory_name;
+
 	std::vector<std::string> rawnames;
 	std::vector<std::string> fmtnames;
 	std::vector<std::string> regnames;

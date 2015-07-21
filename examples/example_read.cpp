@@ -23,6 +23,7 @@ int main()
 	TH1F * h1 = (TH1F*)fac->getObject("dir1/hist1");
 	TH1F * h2 = (TH1F*)fac->getObject("hist2");
 	TH1F * h3 = (TH1F*)fac->getObject("hist3", "dir1/dir2");
+	TH1F * h4 = (TH1F*)fac->getObject("@@@d/hist_@@@a_placeholders");
 
 	// if failed, then objects are not read from file
 	assert(h1 != nullptr);

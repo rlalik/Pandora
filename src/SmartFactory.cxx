@@ -66,13 +66,13 @@ float Normalize(TH1 * h, TH1 * href, bool extended = false)
 	return 0.;
 }
 
-SmartFactory::SmartFactory(const std::string& name) :
-factory_name(name), dirname(name), source(nullptr)
+SmartFactory::SmartFactory(const char * name) :
+factory_name(name), objects_name(name), directory_name(name), source(nullptr)
 {
 }
 
-SmartFactory::SmartFactory(const std::string& name, const std::string& dir) :
-factory_name(name), dirname(dir), source(nullptr)
+SmartFactory::SmartFactory(const char * name, const char * dir) :
+factory_name(name), objects_name(name), directory_name(dir), source(nullptr)
 {
 }
 
@@ -173,10 +173,12 @@ bool SmartFactory::exportStructure(TFile* f, bool verbose)
 
 	SmartFactoryObj obj;
 	obj.objnames = regnames;
+	obj.objects_name = objects_name.c_str();
+	obj.directory_name = directory_name.c_str();
 
 	f->cd();
 
-	obj.Write(this->factory_name.c_str());
+	obj.Write((this->factory_name+"_fac").c_str());
 
 	return write(f, verbose);
 }
@@ -202,9 +204,12 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
 	setSource(f);
 
 	SmartFactoryObj * obj;
-	f->GetObject<SmartFactoryObj>(this->factory_name.c_str(), obj);
+	f->GetObject<SmartFactoryObj>((this->factory_name+"_fac").c_str(), obj);
 	if (!obj)
 		return false;
+
+	objects_name = obj->objects_name.GetString().Data();
+	directory_name = obj->directory_name.GetString().Data();
 
 	for (uint i = 0; i < obj->objnames.size(); ++i)
 	{
@@ -442,8 +447,8 @@ TObject* SmartFactory::RegObject(TObject* obj)
 
 std::string SmartFactory::format(const std::string & name) const
 {
-	std::string n1 = placeholder(name, "@@@d", dirname);
-	std::string n2 = placeholder(n1, "@@@a", factory_name);
+	std::string n1 = placeholder(name, "@@@d", directory_name.c_str());
+	std::string n2 = placeholder(n1, "@@@a", objects_name.c_str());
 	return n2;
 }
 
@@ -475,15 +480,15 @@ std::string SmartFactory::placeholder(const std::string& pattern, const std::str
 	return n;
 }
 
-void SmartFactory::rename(const std::string & newname)
+void SmartFactory::rename(const char * newname)
 {
-	factory_name = newname;
+	objects_name = newname;
 	renameAllObjects();
 }
 
-void SmartFactory::chdir(const std::string& newdir)
+void SmartFactory::chdir(const char * newdir)
 {
-	dirname = newdir;
+	directory_name = newdir;
 	renameAllObjects();
 }
 

@@ -1,3 +1,14 @@
+A. Description
+===========================================================
+
+This library allows to organize and manage Root objects like
+histograms and canvases in easy way. Alows for writing and
+reading them from file with minimum amount of work (see examples).
+
+
+B. Installation
+===========================================================
+
 1. To use the library you need installed ROOT and exported ROOTSYS variable
 2. Easy way to install library:
 
@@ -16,3 +27,18 @@
 		./example_read
 
 5. To use the library, check the examples.
+
+
+C. Features
+===========================================================
+
+1. Placeholders
+SmartFactory allows for using placeholders in the histogram names:
+
+ - @@@d -- this one will be used for directory name
+ - @@@a -- this one will be used for factory name
+
+By default, @@@d = @@@a and will be equal to factory name given
+in the constructor. Both can be changes using rename(std::string)
+and chdir(std::string) functions respectively. Placeholders are
+placed with real values at the wiritng to file time.
