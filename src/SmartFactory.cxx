@@ -78,8 +78,8 @@ factory_name(name), dirname(dir), source(nullptr)
 
 SmartFactory::~SmartFactory()
 {
+// 	if (target) target->Close();
 	if (source) source->Close();
-	if (target) target->Close();
 }
 
 void SmartFactory::validate()
@@ -203,6 +203,8 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
 
 	SmartFactoryObj * obj;
 	f->GetObject<SmartFactoryObj>(this->factory_name.c_str(), obj);
+	if (!obj)
+		return false;
 
 	for (uint i = 0; i < obj->objnames.size(); ++i)
 	{
@@ -440,8 +442,8 @@ TObject* SmartFactory::RegObject(TObject* obj)
 
 std::string SmartFactory::format(const std::string & name) const
 {
-	std::string n1 = placeholder(name, '#', dirname);
-	std::string n2 = placeholder(n1, '@', factory_name);
+	std::string n1 = placeholder(name, "@@@d", dirname);
+	std::string n2 = placeholder(n1, "@@@a", factory_name);
 	return n2;
 }
 
@@ -512,7 +514,7 @@ SmartFactory & SmartFactory::operator+=(const SmartFactory& fa)
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
-		if (regobjs[i]->InheritsFrom("TH1"))
+		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
 		{
 			Bool_t res = ((TH1*)regobjs[i])->Add((TH1*)fa.regobjs[i]);
 			if (!res)
@@ -528,7 +530,7 @@ SmartFactory & SmartFactory::operator-=(const SmartFactory& fa)
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
-		if (regobjs[i]->InheritsFrom("TH1"))
+		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
 		{
 			Bool_t res = ((TH1*)regobjs[i])->Add((TH1*)fa.regobjs[i], -1);
 			if (!res)
@@ -544,7 +546,7 @@ SmartFactory & SmartFactory::operator*=(const SmartFactory& fa)
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
-		if (regobjs[i]->InheritsFrom("TH1"))
+		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
 		{
 			Bool_t res = ((TH1*)regobjs[i])->Multiply((TH1*)fa.regobjs[i]);
 			if (!res)
@@ -561,7 +563,7 @@ SmartFactory & SmartFactory::operator/=(const SmartFactory& fa)
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
-		if (regobjs[i]->InheritsFrom("TH1"))
+		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
 		{
 			Bool_t res = ((TH1*)regobjs[i])->Divide((TH1*)fa.regobjs[i]);
 			if (!res)
@@ -602,7 +604,7 @@ void SmartFactory::norm(const SmartFactory& fa, bool extended)
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
-		if (regobjs[i]->InheritsFrom("TH1"))
+		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
 		{
 			Normalize( ((TH1*)regobjs[i]), ((TH1*)fa.regobjs[i]), extended);
 		}
