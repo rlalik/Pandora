@@ -137,6 +137,8 @@ public:
 	static std::string placeholder(const std::string & pattern, const std::string & str, const std::string & value);
 	static std::string placeholder(const std::string & pattern, char c, const std::string & value);
 
+	void callFunctionOnObjects(const SmartFactory * fac, void (*fun)(TObject * dst, const TObject * src));
+
 private:
 	void operator+(const SmartFactory &) {};
 	void operator-(const SmartFactory &) {};

@@ -275,6 +275,7 @@ TObject* SmartFactory::getObject(TDirectory * srcdir, const std::string& fullnam
 {
 	std::string hname;
 	std::string dir;
+
 	splitDir(fullname, hname, dir);
 	return getObject(srcdir, hname, dir);
 }
@@ -570,11 +571,52 @@ SmartFactory & SmartFactory::operator/=(const SmartFactory& fa)
 	{
 		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
 		{
+			const size_t xbins = ((TH1*)regobjs[i])->GetNbinsX();
+			const size_t ybins = ((TH1*)regobjs[i])->GetNbinsY();
+
+// 			if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
+// 			{
+// 
+// 				printf("*** %s ( %d x %d ):\n", regobjs[i]->GetName(), ybins, xbins);
+// 				printf("- Nominator errors:\n");
+// 				for (int y = 0; y < ybins; ++y)
+// 				{
+// 					for (int x = 0; x < xbins; ++x)
+// 					{
+// 						printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
+// 					}
+// 					printf("\n");
+// 				}
+// 	// 			printf("\n");
+// 				printf("- DeNominator errors:\n");
+// 				for (int y = 0; y < ybins; ++y)
+// 				{
+// 					for (int x = 0; x < xbins; ++x)
+// 					{
+// 						printf("\t%g", ((TH1*)fa.regobjs[i])->GetBinError(x+1, ybins-y));
+// 					}
+// 					printf("\n");
+// 				}
+// 				printf("\n");
+// 			}
 			Bool_t res = ((TH1*)regobjs[i])->Divide((TH1*)fa.regobjs[i]);
 			if (!res)
 			{
 				std::cerr << "Failed dividing histogram " << regobjs[i]->GetName() << std::endl;
 			}
+// 			if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
+// 			{
+// 
+// 				printf("- Result errors:\n");
+// 				for (int y = 0; y < ybins; ++y)
+// 				{
+// 					for (int x = 0; x < xbins; ++x)
+// 					{
+// 						printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
+// 					}
+// 					printf("\n");
+// 				}
+// 			}
 
 		}
 	}
@@ -659,6 +701,62 @@ void SmartFactory::print_integrals() const
 		if (regobjs[i]->InheritsFrom("TH1"))
 		{
 			printf(" %s %f\n", ((TH1*)regobjs[i])->GetName(), ((TH1*)regobjs[i])->Integral());
+		}
+	}
+}
+
+void SmartFactory::callFunctionOnObjects(const SmartFactory * fac, void (*fun)(TObject * dst, const TObject * src))
+{
+	for (size_t i = 0; i < regobjs.size(); ++i)
+	{
+		if (!regobjs[i])
+			continue;
+// 		PR(regnames[i]);
+// 		PR(rawnames[i]);
+// 		PR(i);
+// 		PR(regobjs[i]);
+// 		PR(regobjs[i]->GetName());
+// 		PR(regnames[i]);
+// 		PR(fac->getObject(regobjs[i]->GetName()));
+// 		PR(fac->getObject(regnames[i]));
+// 		PR(fac->getObject(rawnames[i]));
+
+		size_t xbins = 0;
+		size_t ybins = 0;
+		if (regobjs[i]->InheritsFrom("TH2"))
+		{
+			xbins = ((TH1*)regobjs[i])->GetNbinsX();PR(xbins);
+			ybins = ((TH1*)regobjs[i])->GetNbinsY();PR(ybins);
+		}
+
+		if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
+		{
+			printf("*** %s ( %d x %d ):\n", regobjs[i]->GetName(), ybins, xbins);
+			printf("- Before:\n");
+			for (int y = 0; y < ybins; ++y)
+			{
+				for (int x = 0; x < xbins; ++x)
+				{
+					printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
+				}
+				printf("\n");
+			}
+// 			printf("\n");
+		}
+		fun(regobjs[i], fac->getObject(rawnames[i]));
+
+		if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
+		{
+			printf("- After:\n");
+			for (int y = 0; y < ybins; ++y)
+			{
+				for (int x = 0; x < xbins; ++x)
+				{
+					printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
+				}
+				printf("\n");
+			}
+// 			printf("\n");
 		}
 	}
 }
