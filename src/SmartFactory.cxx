@@ -76,6 +76,12 @@ factory_name(name), objects_name(name), directory_name(dir), source(nullptr)
 {
 }
 
+SmartFactory::SmartFactory(const SmartFactory & fac)
+{
+	factory_name = fac.factory_name;
+	*this = fac;
+}
+
 SmartFactory::~SmartFactory()
 {
 // 	if (target) target->Close();
@@ -159,7 +165,6 @@ bool SmartFactory::write(const char * filename, bool verbose)
 	f->Close();
 	return res;
 }
-
 
 bool SmartFactory::exportStructure(TFile* f, bool verbose)
 {
@@ -516,6 +521,48 @@ void SmartFactory::renameAllObjects()
 	}
 }
 
+SmartFactory & SmartFactory::operator=(const SmartFactory& fac)
+{
+// 	factory_name = fac.factory_name;
+	objects_name = fac.objects_name;
+	directory_name = fac.directory_name;
+
+	rawnames = fac.rawnames;
+	fmtnames = fac.fmtnames;
+	regnames = fac.regnames;
+
+	// file targets
+	source = fac.source;
+	target = fac.target;
+
+	for (size_t i = 0; i < regobjs.size(); ++i)
+	{
+		if (regobjs[i])
+		{
+			regobjs[i]->Delete();
+		}
+		regobjs[i] = nullptr;
+	}
+
+	regobjs.clear();
+	regobjs.resize(fac.regobjs.size());
+
+	source_name = fac.source_name;
+	target_name = fac.target_name;
+
+	for (size_t i = 0; i < fac.regobjs.size(); ++i)
+	{
+		if (fac.regobjs[i])
+		{
+			regobjs[i] = fac.regobjs[i]->Clone();
+// 			printf("%s: [%lu] from %p to %p\n", __func__, i, fac.regobjs[i], regobjs[i]);
+		}
+		else
+			regobjs[i] = nullptr;
+	}
+	return *this;
+}
+
 SmartFactory & SmartFactory::operator+=(const SmartFactory& fa)
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
@@ -571,8 +618,8 @@ SmartFactory & SmartFactory::operator/=(const SmartFactory& fa)
 	{
 		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
 		{
-			const size_t xbins = ((TH1*)regobjs[i])->GetNbinsX();
-			const size_t ybins = ((TH1*)regobjs[i])->GetNbinsY();
+// 			const size_t xbins = ((TH1*)regobjs[i])->GetNbinsX();
+// 			const size_t ybins = ((TH1*)regobjs[i])->GetNbinsY();
 
 // 			if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
 // 			{
@@ -725,17 +772,17 @@ void SmartFactory::callFunctionOnObjects(const SmartFactory * fac, void (*fun)(T
 		size_t ybins = 0;
 		if (regobjs[i]->InheritsFrom("TH2"))
 		{
-			xbins = ((TH1*)regobjs[i])->GetNbinsX();PR(xbins);
-			ybins = ((TH1*)regobjs[i])->GetNbinsY();PR(ybins);
+			xbins = ((TH1*)regobjs[i])->GetNbinsX();//PR(xbins);
+			ybins = ((TH1*)regobjs[i])->GetNbinsY();//PR(ybins);
 		}
 
 		if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
 		{
-			printf("*** %s ( %d x %d ):\n", regobjs[i]->GetName(), ybins, xbins);
+			printf("*** %s ( %lu x %lu ):\n", regobjs[i]->GetName(), ybins, xbins);
 			printf("- Before:\n");
-			for (int y = 0; y < ybins; ++y)
+			for (uint y = 0; y < ybins; ++y)
 			{
-				for (int x = 0; x < xbins; ++x)
+				for (uint x = 0; x < xbins; ++x)
 				{
 					printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
 				}
@@ -748,9 +795,9 @@ void SmartFactory::callFunctionOnObjects(const SmartFactory * fac, void (*fun)(T
 		if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
 		{
 			printf("- After:\n");
-			for (int y = 0; y < ybins; ++y)
+			for (uint y = 0; y < ybins; ++y)
 			{
-				for (int x = 0; x < xbins; ++x)
+				for (uint x = 0; x < xbins; ++x)
 				{
 					printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
 				}
@@ -759,4 +806,33 @@ void SmartFactory::callFunctionOnObjects(const SmartFactory * fac, void (*fun)(T
 // 			printf("\n");
 		}
 	}
+}
+
+void SmartFactory::reset()
+{
+	for (size_t i = 0; i < regobjs.size(); ++i)
+	{
+		if (regobjs[i]->InheritsFrom("TH1"))
+		{
+			((TH1*)regobjs[i])->Reset();
+		}
+	}
+}
+
+int SmartFactory::findIndex(TObject * obj) const
+{
+	for (uint i = 0; i < regobjs.size(); ++i)
+		if (regobjs[i] == obj)
+			return i;
+
+		return -1;
+}
+
+
+TObject * SmartFactory::findObject(int index) const
+{
+	if (index >= 0 and index < regobjs.size())
+		return regobjs[index];
+	else
+		return nullptr;
 }

@@ -53,7 +53,18 @@ class SmartFactory
 public:
 	SmartFactory(const char * name);
 	SmartFactory(const char * name, const char * dir);
+	SmartFactory(const SmartFactory & fac);
 	~SmartFactory();
+
+	// operators
+	SmartFactory & operator=(const SmartFactory & fa);
+	SmartFactory & operator+=(const SmartFactory & fa);
+	SmartFactory & operator-=(const SmartFactory & fa);
+	SmartFactory & operator*=(const SmartFactory & fa);
+	SmartFactory & operator/=(const SmartFactory & fa);
+
+	SmartFactory & operator*=(Float_t num);
+	SmartFactory & operator/=(Float_t num);
 
 	inline std::string name() const { return factory_name; }
 
@@ -113,15 +124,7 @@ public:
 
 	void rename(const char * newname);
 	void chdir(const char * newdir);
-
-	// operators
-	SmartFactory & operator+=(const SmartFactory & fa);
-	SmartFactory & operator-=(const SmartFactory & fa);
-	SmartFactory & operator*=(const SmartFactory & fa);
-	SmartFactory & operator/=(const SmartFactory & fa);
-
-	SmartFactory & operator*=(Float_t num);
-	SmartFactory & operator/=(Float_t num);
+	void reset();
 
 	// operation on histograms
 	void norm(const SmartFactory & fa, bool extended = false);
@@ -138,6 +141,9 @@ public:
 	static std::string placeholder(const std::string & pattern, char c, const std::string & value);
 
 	void callFunctionOnObjects(const SmartFactory * fac, void (*fun)(TObject * dst, const TObject * src));
+
+	int findIndex(TObject * obj) const;
+	TObject * findObject(int index) const;
 
 private:
 	void operator+(const SmartFactory &) {};

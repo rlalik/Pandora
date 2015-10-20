@@ -22,11 +22,11 @@ int main (int argc, char* argv[])
 
 	// Add a listener that colllects test result
 	CppUnit::TestResultCollector result;
-	controller.addListener( &result );        
+	controller.addListener( &result );
 
 	// Add a listener that print dots as test run.
 	CppUnit::TextTestProgressListener progress;
-	controller.addListener( &progress );      
+	controller.addListener( &progress );
 
 	TestRunner runner;
 	TestFactoryRegistry & registry = TestFactoryRegistry::getRegistry();
@@ -53,7 +53,7 @@ int main (int argc, char* argv[])
 	}
 	catch ( std::invalid_argument &e )  // Test path not resolved
 	{
-		std::cerr  <<  std::endl  
+		std::cerr  <<  std::endl
 								<<  "ERROR: "  <<  e.what()
 								<< std::endl;
 		return 0;
