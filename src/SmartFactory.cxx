@@ -84,8 +84,30 @@ SmartFactory::SmartFactory(const SmartFactory & fac)
 
 SmartFactory::~SmartFactory()
 {
-// 	if (target) target->Close();
-	if (source) source->Close();
+	for (uint i = 0; i < regobjs.size(); ++i)
+	{
+// 		if (regobjs[i]->InheritsFrom("TPad"))
+		{
+// 			((TPad*)regobjs[i])->Close();
+// 			delete regobjs[i];
+// 			regobjs[i]->Delete();
+		}
+// 		else if (regobjs[i]->InheritsFrom("TCanvas"))
+		{
+// 			((TPad*)regobjs[i])->Close();
+// 			delete regobjs[i];
+// 			regobjs[i]->Delete();
+		}
+// 		else
+		{
+// 			regobjs[i]->Delete();
+		}
+
+		if (regobjs[i])
+			delete regobjs[i];
+	}
+
+// 	if (source) source->Close();
 }
 
 void SmartFactory::validate()
@@ -616,8 +638,24 @@ SmartFactory & SmartFactory::operator/=(const SmartFactory& fa)
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
-		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
+		// do this only for histogram
+		if (regobjs[i]->InheritsFrom("TH1"))
 		{
+			// index for fa factory
+			int fa_i = i;
+
+			// if fa.rawnames is smaller than this, or
+			// if rawnames values are not the same
+			if ((fa.rawnames.size() <= i) or (rawnames[i] != fa.rawnames[i]) )
+			{
+				// search for correct rawname index
+				fa_i = fa.findIndexByRawname(rawnames[i]);
+
+				// if not found, skip this object
+				if (fa_i == -1)
+					continue;
+			}
+
 // 			const size_t xbins = ((TH1*)regobjs[i])->GetNbinsX();
 // 			const size_t ybins = ((TH1*)regobjs[i])->GetNbinsY();
 
@@ -646,7 +684,8 @@ SmartFactory & SmartFactory::operator/=(const SmartFactory& fa)
 // 				}
 // 				printf("\n");
 // 			}
-			Bool_t res = ((TH1*)regobjs[i])->Divide((TH1*)fa.regobjs[i]);
+
+			Bool_t res = ((TH1*)regobjs[i])->Divide((TH1*)fa.regobjs[fa_i]);
 			if (!res)
 			{
 				std::cerr << "Failed dividing histogram " << regobjs[i]->GetName() << std::endl;
@@ -831,8 +870,17 @@ int SmartFactory::findIndex(TObject * obj) const
 
 TObject * SmartFactory::findObject(int index) const
 {
-	if (index >= 0 and index < regobjs.size())
+	if (index >= 0 and index < (int)regobjs.size())
 		return regobjs[index];
 	else
 		return nullptr;
+}
+
+int SmartFactory::findIndexByRawname(const std::string & name) const
+{
+	for (uint i = 0; i < rawnames.size(); ++i)
+		if (name == rawnames[i])
+			return i;
+
+		return -1;
 }

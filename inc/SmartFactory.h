@@ -144,6 +144,7 @@ public:
 
 	int findIndex(TObject * obj) const;
 	TObject * findObject(int index) const;
+	int findIndexByRawname(const std::string & name) const;
 
 private:
 	void operator+(const SmartFactory &) {};
