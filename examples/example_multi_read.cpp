@@ -5,9 +5,20 @@
 
 #include "SmartFactory.h"
 
+#include "TCanvas.h"
 #include "TFile.h"
 
 const int bar_limit = 50;
+const char hist_pattern[] = "hist_%06d";
+const char can_pattern[] = "can_%06d";
+
+void bar(int i)
+{
+	printf(".");
+	if (i and (i+1) % bar_limit == 0)
+		printf("  %8d\n", i+1);
+}
+
 void write_func()
 {
 	// create factory
@@ -16,15 +27,21 @@ void write_func()
 
 	// fill with histograms
 	char hname[100];
-	for (int i = 0; i < 1000; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
-		sprintf(hname, "hist_%06d", i);
-		TH1F * h = fac->RegTH1<TH1F>(hname, "Histogram - loop", 100, -5, 5);
-		h->FillRandom("gaus", 100000);
+		sprintf(hname, hist_pattern, i);
+		TH2F * h = fac->RegTH2<TH2F>(hname, "Histogram - loop", 100, -5, 5, 100, -5, 5);
 
-		printf(".");
-		if (i and (i+1) % bar_limit == 0)
-			printf("  %8d\n", i+1);
+		for (int j = 0; j < 100*100; ++j)
+			h->SetBinContent(j+1, sqrt(j));
+
+		sprintf(hname, can_pattern, i);
+
+		TCanvas * c = fac->RegCanvas(hname, "Canvas - loop", 800, 600);
+		c->cd(0);
+		h->Draw("colz");
+
+		bar(i);
 	}
 
 	fac->rename("renamed_factory");
@@ -50,9 +67,18 @@ void loop_read_func()
 // 	fac->listRegisterdObjects();
 
 	// you can fetch specific object by its name
-	TH1F * h1 = (TH1F*)fac->getObject("hist_000000");
-	// if failed, then objects are not read from file
-	assert(h1 != nullptr);
+	char hname[100];
+	for (int i = 0; i < 100; ++i)
+	{
+		sprintf(hname, hist_pattern, i);
+		TH2F * h1 = (TH2F*)fac->getObject(hname);
+		// if failed, then objects are not read from file
+		assert(h1 != nullptr);
+
+		sprintf(hname, can_pattern, i);
+		TCanvas * c1 = (TCanvas*)fac->getObject(hname);
+		assert(c1 != nullptr);
+	}
 
 	delete fac;
 
@@ -74,8 +100,7 @@ int main(int argc, char ** argv)
 	for (int i = 0; i < loops; ++i)
 	{
 		loop_read_func();
-		printf(".");
-		if (i and i % 50 == 0)
-			printf("  %8d\n", i);
+
+		bar(i);
 	}
 }
