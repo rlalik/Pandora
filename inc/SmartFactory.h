@@ -107,7 +107,7 @@ public:
 	void validate();
 
 	// print list of objects
-	void listRegisterdObjects() const;
+	void listRegisteredObjects() const;
 
 	TObject * getObject(const std::string & name, const std::string & dir = "") const;
 	static TObject * getObject(TDirectory * srcdir, const std::string & fullname);
@@ -146,6 +146,8 @@ public:
 	TObject * findObject(int index) const;
 	int findIndexByRawname(const std::string & name) const;
 
+	inline void setFileOwner(bool owner = true) { own_file = owner; }
+
 private:
 	void operator+(const SmartFactory &) {};
 	void operator-(const SmartFactory &) {};
@@ -171,6 +173,8 @@ private:
 
 	std::string source_name;
 	std::string target_name;
+
+	bool own_file;
 };
 
 

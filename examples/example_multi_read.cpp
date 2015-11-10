@@ -35,11 +35,10 @@ void write_func()
 		for (int j = 0; j < 100*100; ++j)
 			h->SetBinContent(j+1, sqrt(j));
 
-		sprintf(hname, can_pattern, i);
-
-		TCanvas * c = fac->RegCanvas(hname, "Canvas - loop", 800, 600);
-		c->cd(0);
-		h->Draw("colz");
+// 		sprintf(hname, can_pattern, i);
+// 		TCanvas * c = fac->RegCanvas(hname, "Canvas - loop", 800, 600);
+// 		c->cd(0);
+// 		h->Draw("colz");
 
 		bar(i);
 	}
@@ -75,9 +74,9 @@ void loop_read_func()
 		// if failed, then objects are not read from file
 		assert(h1 != nullptr);
 
-		sprintf(hname, can_pattern, i);
-		TCanvas * c1 = (TCanvas*)fac->getObject(hname);
-		assert(c1 != nullptr);
+// 		sprintf(hname, can_pattern, i);
+// 		TCanvas * c1 = (TCanvas*)fac->getObject(hname);
+// 		assert(c1 != nullptr);
 	}
 
 	delete fac;

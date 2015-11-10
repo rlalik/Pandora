@@ -17,7 +17,7 @@ int main()
 	TFile * f = fac->importStructure("example.root");
 
 	// list of registered objects 
-	fac->listRegisterdObjects();
+	fac->listRegisteredObjects();
 
 	// you can fetch specific object by its name
 	TH1F * h1 = (TH1F*)fac->getObject("dir1/hist1");

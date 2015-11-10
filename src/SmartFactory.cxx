@@ -67,12 +67,12 @@ float Normalize(TH1 * h, TH1 * href, bool extended = false)
 }
 
 SmartFactory::SmartFactory(const char * name) :
-factory_name(name), objects_name(name), directory_name(name), source(nullptr)
+factory_name(name), objects_name(name), directory_name(name), source(nullptr), own_file(false)
 {
 }
 
 SmartFactory::SmartFactory(const char * name, const char * dir) :
-factory_name(name), objects_name(name), directory_name(dir), source(nullptr)
+factory_name(name), objects_name(name), directory_name(dir), source(nullptr), own_file(false)
 {
 }
 
@@ -86,28 +86,18 @@ SmartFactory::~SmartFactory()
 {
 	for (uint i = 0; i < regobjs.size(); ++i)
 	{
-// 		if (regobjs[i]->InheritsFrom("TPad"))
-		{
-// 			((TPad*)regobjs[i])->Close();
-// 			delete regobjs[i];
-// 			regobjs[i]->Delete();
-		}
-// 		else if (regobjs[i]->InheritsFrom("TCanvas"))
-		{
-// 			((TPad*)regobjs[i])->Close();
-// 			delete regobjs[i];
-// 			regobjs[i]->Delete();
-		}
-// 		else
-		{
-// 			regobjs[i]->Delete();
-		}
+// 		printf("- Deleting: %p  %s  %s\n", regobjs[i], rawnames[i].c_str(), regnames[i].c_str());
 
 		if (regobjs[i])
 			delete regobjs[i];
 	}
 
-// 	if (source) source->Close();
+	if (own_file and source)
+	{
+		source->Close();
+		delete source;
+		source = nullptr;
+	}
 }
 
 void SmartFactory::validate()
@@ -123,13 +113,12 @@ void SmartFactory::validate()
 	}
 }
 
-void SmartFactory::listRegisterdObjects() const
+void SmartFactory::listRegisteredObjects() const
 {
 	std::cout << "List of registered objects in " << factory_name << std::endl;
 	std::cout << " Number of objects: " << regobjs.size() << std::endl;
 	for (size_t i = 0; i < regnames.size(); ++i)
 	{
-// 		PR(regobjs[i]);
 		std::cout	<< "* "
 		<< regobjs[i]->GetName()
 		<< " [ " << rawnames[i] << " ] "
@@ -247,7 +236,7 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
 		TObject * o = this->getObject(f, obj->objnames[i].c_str());
 		if (o)
 		{
-			this->RegObject(obj->objnames[i].c_str());
+			this->RegObject(o);
 			if (verbose)
 				std::cout << " [ done ] " << std::endl;
 		}
@@ -577,7 +566,6 @@ SmartFactory & SmartFactory::operator=(const SmartFactory& fac)
 		if (fac.regobjs[i])
 		{
 			regobjs[i] = fac.regobjs[i]->Clone();
-// 			printf("%s: [%lu] from %p to %p\n", __func__, i, fac.regobjs[i], regobjs[i]);
 		}
 		else
 			regobjs[i] = nullptr;
@@ -587,6 +575,35 @@ SmartFactory & SmartFactory::operator=(const SmartFactory& fac)
 
 SmartFactory & SmartFactory::operator+=(const SmartFactory& fa)
 {
+	for (size_t i = 0; i < regobjs.size(); ++i)
+	{
+		// do this only for histogram
+		if (regobjs[i]->InheritsFrom("TH1"))
+		{
+			// index for fa factory
+			int fa_i = i;
+
+			// if fa.rawnames is smaller than this, or
+			// if rawnames values are not the same
+			if ((fa.rawnames.size() <= i) or (rawnames[i] != fa.rawnames[i]) )
+			{
+				// search for correct rawname index
+				fa_i = fa.findIndexByRawname(rawnames[i]);
+
+				// if not found, skip this object
+				if (fa_i == -1)
+					continue;
+			}
+
+			Bool_t res = ((TH1*)regobjs[i])->Add((TH1*)fa.regobjs[fa_i]);
+			if (!res)
+			{
+				std::cerr << "Failed adding histogram " << regobjs[i]->GetName() << std::endl;
+			}
+		}
+	}
+	return *this;
+
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
 		if (regobjs[i]->InheritsFrom("TH1") and fa.regobjs[i])
@@ -797,53 +814,8 @@ void SmartFactory::callFunctionOnObjects(const SmartFactory * fac, void (*fun)(T
 	{
 		if (!regobjs[i])
 			continue;
-// 		PR(regnames[i]);
-// 		PR(rawnames[i]);
-// 		PR(i);
-// 		PR(regobjs[i]);
-// 		PR(regobjs[i]->GetName());
-// 		PR(regnames[i]);
-// 		PR(fac->getObject(regobjs[i]->GetName()));
-// 		PR(fac->getObject(regnames[i]));
-// 		PR(fac->getObject(rawnames[i]));
 
-		size_t xbins = 0;
-		size_t ybins = 0;
-		if (regobjs[i]->InheritsFrom("TH2"))
-		{
-			xbins = ((TH1*)regobjs[i])->GetNbinsX();//PR(xbins);
-			ybins = ((TH1*)regobjs[i])->GetNbinsY();//PR(ybins);
-		}
-
-		if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
-		{
-			printf("*** %s ( %lu x %lu ):\n", regobjs[i]->GetName(), ybins, xbins);
-			printf("- Before:\n");
-			for (uint y = 0; y < ybins; ++y)
-			{
-				for (uint x = 0; x < xbins; ++x)
-				{
-					printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
-				}
-				printf("\n");
-			}
-// 			printf("\n");
-		}
 		fun(regobjs[i], fac->getObject(rawnames[i]));
-
-		if (regobjs[i]->InheritsFrom("TH2") and xbins < 20 and ybins < 20)
-		{
-			printf("- After:\n");
-			for (uint y = 0; y < ybins; ++y)
-			{
-				for (uint x = 0; x < xbins; ++x)
-				{
-					printf("\t%g", ((TH1*)regobjs[i])->GetBinError(x+1, ybins-y));
-				}
-				printf("\n");
-			}
-// 			printf("\n");
-		}
 	}
 }
 

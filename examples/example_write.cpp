@@ -30,7 +30,7 @@ int main()
 // 	TCanvas * can = fac->RegCanvas("can1", "Canvas", 800, 800, 4);
 
 	// list objects
-	fac->listRegisterdObjects();
+	fac->listRegisteredObjects();
 
 	// export factory to file
 	fac->exportStructure("example.root", true);
