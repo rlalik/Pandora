@@ -786,7 +786,7 @@ void SmartFactory::setTitleForAll(const TString & title)
 	}
 }
 
-void SmartFactory::print_counts() const
+void SmartFactory::printCounts() const
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{
@@ -797,7 +797,7 @@ void SmartFactory::print_counts() const
 	}
 }
 
-void SmartFactory::print_integrals() const
+void SmartFactory::printIntegrals() const
 {
 	for (size_t i = 0; i < regobjs.size(); ++i)
 	{

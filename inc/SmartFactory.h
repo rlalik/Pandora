@@ -130,8 +130,8 @@ public:
 	void norm(const SmartFactory & fa, bool extended = false);
 	void norm(Float_t num);
 
-	void print_counts() const;
-	void print_integrals() const;
+	void printCounts() const;
+	void printIntegrals() const;
 
 	// global modifiers
 	void setTitleForAll(const TString & title);
