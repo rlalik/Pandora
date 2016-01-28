@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(SmartFactory C CXX)
-set(CAPS_PROJECT_NAME SMARTFACTORY)
+string(TOUPPER "${PROJECT_NAME}" CAPS_PROJECT_NAME)
 
 ##### the version number
 set (VERSION_MAJOR 0)
