@@ -28,6 +28,7 @@
 // ROOT
 #include <TH1.h>
 #include <TH2.h>
+#include <TH3.h>
 #include <TNamed.h>
 #include <TObjArray.h>
 #include <TObjString.h>
@@ -82,6 +83,19 @@ public:
 	T* RegTH2(const char* name, const char* title, int xbins, double * xarr, int ybins, double * yarr, bool sumw2 = true);
 
 	template<class T>
+	T* RegTH3(const char* name, const char* title,
+			  int xbins, double xmin, double xmax,
+        int ybins, double ymin, double ymax,
+        int zbins, double zmin, double zmax,
+        bool sumw2 = true);
+	template<class T>
+	T* RegTH3(const char* name, const char* title,
+            int xbins, double * xarr,
+            int ybins, double * yarr,
+            int zbins, double * zarr,
+            bool sumw2 = true);
+
+	template<class T>
 	T* RegGraph(const char* name, int points);
 
 	// canvases
@@ -113,11 +127,11 @@ public:
 	static TObject * getObject(TDirectory * srcdir, const std::string & fullname);
 	static TObject * getObject(TDirectory * srcdir, const std::string & name, const std::string & dir);
 
-	bool write(TFile * f/* = nullptr*/, bool verbose = false);
-	bool write(const char * filename/* = nullptr*/, bool verbose = false);
+	virtual bool write(TFile * f/* = nullptr*/, bool verbose = false);
+	virtual bool write(const char * filename/* = nullptr*/, bool verbose = false);
 
-	bool exportStructure(TFile * target, bool verbose = false);
-	bool exportStructure(const char * filename, bool verbose = false);
+	virtual bool exportStructure(TFile * target, bool verbose = false);
+	virtual bool exportStructure(const char * filename, bool verbose = false);
 
 	bool importStructure(TFile * target, bool verbose = false);
 	TFile * importStructure(const char * filename, bool verbose = false);
@@ -262,6 +276,58 @@ T* SmartFactory::RegTH2(const char* name, const char* title,
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), title, xbins, xarr, ybins, yarr);
+		if (sumw2) h->Sumw2();
+	}
+	if (h) {
+		rawnames.push_back(name);
+		regnames.push_back(fullname);
+		regobjs.push_back(h);
+	}
+	return h;
+}
+
+template<class T>
+T* SmartFactory::RegTH3(const char* name, const char* title,
+                        int xbins, double xmin, double xmax,
+                        int ybins, double ymin, double ymax,
+                        int zbins, double zmin, double zmax,
+                        bool sumw2)
+{
+	std::string fullname = format(name);
+	std::string hname;
+	std::string dir;
+	splitDir(fullname, hname, dir);
+
+	// try to get object from file
+	T * h = (T*)getObject(hname, dir);
+	if (!h) {
+		h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
+		if (sumw2) h->Sumw2();
+	}
+	if (h) {
+		rawnames.push_back(name);
+		regnames.push_back(fullname);
+		regobjs.push_back(h);
+	}
+	return h;
+}
+
+template<class T>
+T* SmartFactory::RegTH3(const char* name, const char* title,
+                        int xbins, double * xarr,
+                        int ybins, double * yarr,
+                        int zbins, double * zarr,
+                        bool sumw2)
+{
+	std::string fullname = format(name);
+	std::string hname;
+	std::string dir;
+	splitDir(fullname, hname, dir);
+
+	// try to get object from file
+	T * h = (T*)getObject(hname, dir);
+	if (!h) {
+		h = new T(hname.c_str(), title, xbins, xarr, ybins, yarr, zbins, zarr);
 		if (sumw2) h->Sumw2();
 	}
 	if (h) {

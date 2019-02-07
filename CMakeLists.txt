@@ -57,7 +57,7 @@ configure_package_config_file(Config.cmake.in ${CMAKE_PROJECT_NAME}Config.cmake
 write_basic_package_version_file(${CMAKE_PROJECT_NAME}ConfigVersion.cmake
 	VERSION ${PROJECT_VERSION}
 	COMPATIBILITY SameMajorVersion)
-                                 
+
 install(FILES 
 	${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
 	${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
