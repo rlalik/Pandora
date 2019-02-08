@@ -67,7 +67,9 @@ public:
 	SmartFactory & operator*=(Float_t num);
 	SmartFactory & operator/=(Float_t num);
 
-	inline std::string name() const { return factory_name; }
+	std::string name() const { return fac_name; }
+	std::string objects_name() const { return obj_name; }
+	std::string directory_name() const { return dir_name; }
 
 	// objects creation
 	// histograms
@@ -111,11 +113,15 @@ public:
 	TObject * RegClone(TObject * obj, const std::string & new_name);
 
 	// file targets
-	inline void setSource(TFile * file) { source = file; }
-	inline void setTarget(TFile * file) { target = file; }
+	void setSource(TFile * file) { source = file; }
+	TFile * getSource() const { return source; }
+	void setTarget(TFile * file) { target = file; }
+	TFile * getTarget() const { return target; }
 
-	inline void setSourceName(const char * filename) { source_name = filename; }
-	inline void setTargetName(const char * filename) { target_name = filename; }
+	void setSourceName(const char * filename) { source_name = filename; }
+	const char * getSourceName() const { return source_name.c_str(); }
+	void setTargetName(const char * filename) { target_name = filename; }
+	const char * getTargetName() const { return target_name.c_str(); }
 
 	// validate list of objects
 	void validate();
@@ -136,6 +142,7 @@ public:
 	bool importStructure(TFile * target, bool verbose = false);
 	TFile * importStructure(const char * filename, bool verbose = false);
 
+  void set_name(const char * name) { fac_name = name; }
 	void rename(const char * newname);
 	void chdir(const char * newdir);
 	void reset();
@@ -171,15 +178,20 @@ private:
 	static void splitDir(const std::string & fullname, std::string & name, std::string & dir);
 	bool cdDir(TFile * target, const char * dir, bool automkdir = true) const;
 
-private:
-	std::string factory_name;
-	std::string objects_name;
-	std::string directory_name;
+public:
+  struct ObjectData {
+    std::string raw_name;
+    std::string fmtnames;
+    std::string reg_name;
+    TObject* object;
+  };
 
-	std::vector<std::string> rawnames;
-	std::vector<std::string> fmtnames;
-	std::vector<std::string> regnames;
-	std::vector<TObject*> regobjs;
+private:
+	std::string fac_name;
+	std::string obj_name;
+	std::string dir_name;
+
+  std::vector<ObjectData> regobjects;
 
 	// file targets
 	TFile * source;
@@ -206,12 +218,14 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double mi
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), fulltitle.c_str(), bins, min, max);
-		if (sumw2) h->Sumw2();
+		if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
 	}
 	if (h) {
-		rawnames.push_back(name);
-		regnames.push_back(fullname);
-		regobjs.push_back(h);
+    ObjectData od;
+		od.raw_name = name;
+		od.reg_name = fullname;
+		od.object = h;
+    regobjects.push_back(od);
 	}
 	return h;
 }
@@ -230,12 +244,14 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double * 
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), fulltitle.c_str(), bins, arr);
-		if (sumw2) h->Sumw2();
+		if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
 	}
 	if (h) {
-		rawnames.push_back(name);
-		regnames.push_back(fullname);
-		regobjs.push_back(h);
+    ObjectData od;
+		od.raw_name = name;
+		od.reg_name = fullname;
+		od.object = h;
+    regobjects.push_back(od);
 	}
 	return h;
 }
@@ -253,12 +269,14 @@ T* SmartFactory::RegTH2(const char* name, const char* title,
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax);
-		if (sumw2) h->Sumw2();
+		if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
 	}
 	if (h) {
-		rawnames.push_back(name);
-		regnames.push_back(fullname);
-		regobjs.push_back(h);
+    ObjectData od;
+		od.raw_name = name;
+		od.reg_name = fullname;
+		od.object = h;
+    regobjects.push_back(od);
 	}
 	return h;
 }
@@ -276,12 +294,14 @@ T* SmartFactory::RegTH2(const char* name, const char* title,
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), title, xbins, xarr, ybins, yarr);
-		if (sumw2) h->Sumw2();
+		if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
 	}
 	if (h) {
-		rawnames.push_back(name);
-		regnames.push_back(fullname);
-		regobjs.push_back(h);
+    ObjectData od;
+		od.raw_name = name;
+		od.reg_name = fullname;
+		od.object = h;
+    regobjects.push_back(od);
 	}
 	return h;
 }
@@ -302,12 +322,14 @@ T* SmartFactory::RegTH3(const char* name, const char* title,
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
-		if (sumw2) h->Sumw2();
+		if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
 	}
 	if (h) {
-		rawnames.push_back(name);
-		regnames.push_back(fullname);
-		regobjs.push_back(h);
+    ObjectData od;
+		od.raw_name = name;
+		od.reg_name = fullname;
+		od.object = h;
+    regobjects.push_back(od);
 	}
 	return h;
 }
@@ -328,12 +350,14 @@ T* SmartFactory::RegTH3(const char* name, const char* title,
 	T * h = (T*)getObject(hname, dir);
 	if (!h) {
 		h = new T(hname.c_str(), title, xbins, xarr, ybins, yarr, zbins, zarr);
-		if (sumw2) h->Sumw2();
+		if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
 	}
 	if (h) {
-		rawnames.push_back(name);
-		regnames.push_back(fullname);
-		regobjs.push_back(h);
+    ObjectData od;
+		od.raw_name = name;
+		od.reg_name = fullname;
+		od.object = h;
+    regobjects.push_back(od);
 	}
 	return h;
 }
@@ -354,9 +378,11 @@ T* SmartFactory::RegGraph(const char* name, int points)
 		h->SetName(hname.c_str());
 	}
 	if (h) {
-		rawnames.push_back(name);
-		regnames.push_back(fullname);
-		regobjs.push_back(h);
+    ObjectData od;
+		od.raw_name = name;
+		od.reg_name = fullname;
+		od.object = h;
+    regobjects.push_back(od);
 	}
 	return h;
 }
