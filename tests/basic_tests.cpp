@@ -2,7 +2,7 @@
 
 #include <SmartFactory.h>
 
-class BasicCase : public CPPUNIT_NS::TestFixture
+class BasicCase : public CppUnit::TestFixture
 {
 	CPPUNIT_TEST_SUITE( BasicCase );
 	CPPUNIT_TEST( MyTest );
@@ -27,7 +27,6 @@ void BasicCase::setUp()
 void BasicCase::MyTest()
 {
 	float fnum = 2.00001f;
-// 	CPPUNIT_FAIL("zxczc");
 	CPPUNIT_ASSERT_DOUBLES_EQUAL( fnum, 2.0f, 0.0005 );
 
 	std::string pattern_string("%%d pattern");
