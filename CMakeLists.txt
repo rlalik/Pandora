@@ -43,7 +43,7 @@ link_directories(${ROOT_LIBRARIES_DIR})
 ROOT_STANDARD_LIBRARY_PACKAGE(SmartFactory DEPENDENCIES ${ROOT_LIBRARIES})
 
 add_subdirectory(examples)
-add_subdirectory(tests)
+#add_subdirectory(tests)
 
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)

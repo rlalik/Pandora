@@ -10,6 +10,7 @@ class CopyMoveCase : public CPPUNIT_NS::TestFixture
 
 public:
 	void setUp();
+	void tearDown();
 
 protected:
 	void MyTest();
@@ -24,6 +25,12 @@ void CopyMoveCase::setUp()
 {
 	sf1 = new SmartFactory("test_factory_1");
 	sf2 = new SmartFactory("test_factory_2");
+}
+
+void CopyMoveCase::tearDown()
+{
+	delete sf1;
+	delete sf2;
 }
 
 void CopyMoveCase::MyTest()
