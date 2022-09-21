@@ -4,7 +4,7 @@
 
 TEST(BasicTests, Placeholders)
 {
-    SmartFactory * sf = new SmartFactory("test_factory");
+    SmartFactory* sf = new SmartFactory("test_factory");
 
     std::string pattern_string("%%d pattern");
     std::string test_string("test pattern");

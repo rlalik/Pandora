@@ -4,7 +4,8 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class SmartFactory;
+/* clang-format off */
+#pragma link C++ class SmartFactory-;
 #pragma link C++ class SmartFactoryObj;
-
+/* clang-format on */
 #endif

@@ -20,22 +20,17 @@
 #ifndef SMARTFACTORY_H
 #define SMARTFACTORY_H
 
-// std
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
-// ROOT
+
 #include <TH1.h>
 #include <TH2.h>
 #include <TH3.h>
 #include <TNamed.h>
 #include <TObjArray.h>
 #include <TObjString.h>
-
-#define PR(x)                                                                  \
-    std::cout << "++DEBUG: " << #x << " = |" << x << "| (" << __FILE__ << ", " \
-              << __LINE__ << ")\n";
 
 class TDirectory;
 class TCanvas;
@@ -54,7 +49,7 @@ struct SmartFactoryObj : public TNamed
 
 class SmartFactory
 {
-  public:
+public:
     SmartFactory(const char* name);
     SmartFactory(const char* name, const char* dir);
     SmartFactory(const SmartFactory& fac);
@@ -77,38 +72,32 @@ class SmartFactory
     // objects creation
     // histograms
     template <class T>
-    T* RegTH1(const char* name, const char* title, int bins, double min,
-              double max, bool sumw2 = true);
+    T* RegTH1(const char* name, const char* title, int bins, double min, double max,
+              bool sumw2 = true);
     template <class T>
-    T* RegTH1(const char* name, const char* title, int bins, double* arr,
+    T* RegTH1(const char* name, const char* title, int bins, double* arr, bool sumw2 = true);
+
+    template <class T>
+    T* RegTH2(const char* name, const char* title, int xbins, double xmin, double xmax, int ybins,
+              double ymin, double ymax, bool sumw2 = true);
+    template <class T>
+    T* RegTH2(const char* name, const char* title, int xbins, double* xarr, int ybins, double* yarr,
               bool sumw2 = true);
 
     template <class T>
-    T* RegTH2(const char* name, const char* title, int xbins, double xmin,
-              double xmax, int ybins, double ymin, double ymax,
-              bool sumw2 = true);
+    T* RegTH3(const char* name, const char* title, int xbins, double xmin, double xmax, int ybins,
+              double ymin, double ymax, int zbins, double zmin, double zmax, bool sumw2 = true);
     template <class T>
-    T* RegTH2(const char* name, const char* title, int xbins, double* xarr,
-              int ybins, double* yarr, bool sumw2 = true);
-
-    template <class T>
-    T* RegTH3(const char* name, const char* title, int xbins, double xmin,
-              double xmax, int ybins, double ymin, double ymax, int zbins,
-              double zmin, double zmax, bool sumw2 = true);
-    template <class T>
-    T* RegTH3(const char* name, const char* title, int xbins, double* xarr,
-              int ybins, double* yarr, int zbins, double* zarr,
-              bool sumw2 = true);
+    T* RegTH3(const char* name, const char* title, int xbins, double* xarr, int ybins, double* yarr,
+              int zbins, double* zarr, bool sumw2 = true);
 
     template <class T> T* RegGraph(const char* name, int points);
 
     // canvases
-    TCanvas* RegCanvas(const char* name, const char* title, int width,
-                       int height);
-    TCanvas* RegCanvas(const char* name, const char* title, int width,
-                       int height, int divsqr);
-    TCanvas* RegCanvas(const char* name, const char* title, int width,
-                       int height, int cols, int rows);
+    TCanvas* RegCanvas(const char* name, const char* title, int width, int height);
+    TCanvas* RegCanvas(const char* name, const char* title, int width, int height, int divsqr);
+    TCanvas* RegCanvas(const char* name, const char* title, int width, int height, int cols,
+                       int rows);
 
     // TObject general
     TObject* RegObject(TObject* obj);
@@ -134,15 +123,12 @@ class SmartFactory
     // print list of objects
     virtual void listRegisteredObjects() const;
 
-    virtual TObject* getObject(const std::string& name,
-                               const std::string& dir = "") const;
+    virtual TObject* getObject(const std::string& name, const std::string& dir = "") const;
     static TObject* getObject(TDirectory* srcdir, const std::string& fullname);
-    static TObject* getObject(TDirectory* srcdir, const std::string& name,
-                              const std::string& dir);
+    static TObject* getObject(TDirectory* srcdir, const std::string& name, const std::string& dir);
 
     virtual bool write(TFile* f /* = nullptr*/, bool verbose = false);
-    virtual bool write(const char* filename /* = nullptr*/,
-                       bool verbose = false);
+    virtual bool write(const char* filename /* = nullptr*/, bool verbose = false);
 
     virtual bool exportStructure(TFile* target, bool verbose = false);
     virtual bool exportStructure(const char* filename, bool verbose = false);
@@ -166,11 +152,9 @@ class SmartFactory
     virtual void setTitleForAll(const TString& title);
     virtual std::string format(const std::string& name) const;
 
-    static std::string placeholder(const std::string& pattern,
-                                   const std::string& str,
+    static std::string placeholder(const std::string& pattern, const std::string& str,
                                    const std::string& value);
-    static std::string placeholder(const std::string& pattern, char c,
-                                   const std::string& value);
+    static std::string placeholder(const std::string& pattern, char c, const std::string& value);
 
     virtual void callFunctionOnObjects(const SmartFactory* fac,
                                        void (*fun)(TObject* dst, const TObject* src));
@@ -181,17 +165,16 @@ class SmartFactory
 
     virtual void setFileOwner(bool owner = true) { own_file = owner; }
 
-  private:
+private:
     void operator+(const SmartFactory&){};
     void operator-(const SmartFactory&){};
 
     void renameAllObjects();
 
-    static void splitDir(const std::string& fullname, std::string& name,
-                         std::string& dir);
+    static void splitDir(const std::string& fullname, std::string& name, std::string& dir);
     bool cdDir(TFile* target, const char* dir, bool automkdir = true) const;
 
-  public:
+public:
     struct ObjectData
     {
         std::string raw_name;
@@ -200,7 +183,7 @@ class SmartFactory
         TObject* object;
     };
 
-  private:
+private:
     std::string fac_name;
     std::string obj_name;
     std::string dir_name;
@@ -219,8 +202,8 @@ class SmartFactory
 };
 
 template <class T>
-T* SmartFactory::RegTH1(const char* name, const char* title, int bins,
-                        double min, double max, bool sumw2)
+T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double min, double max,
+                        bool sumw2)
 {
     std::string fullname = format(name);
     std::string fulltitle = format(title);
@@ -248,8 +231,7 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins,
 }
 
 template <class T>
-T* SmartFactory::RegTH1(const char* name, const char* title, int bins,
-                        double* arr, bool sumw2)
+T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double* arr, bool sumw2)
 {
     std::string fullname = format(name);
     std::string fulltitle = format(title);
@@ -277,9 +259,8 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins,
 }
 
 template <class T>
-T* SmartFactory::RegTH2(const char* name, const char* title, int xbins,
-                        double xmin, double xmax, int ybins, double ymin,
-                        double ymax, bool sumw2)
+T* SmartFactory::RegTH2(const char* name, const char* title, int xbins, double xmin, double xmax,
+                        int ybins, double ymin, double ymax, bool sumw2)
 {
     std::string fullname = format(name);
     std::string hname;
@@ -305,8 +286,8 @@ T* SmartFactory::RegTH2(const char* name, const char* title, int xbins,
 }
 
 template <class T>
-T* SmartFactory::RegTH2(const char* name, const char* title, int xbins,
-                        double* xarr, int ybins, double* yarr, bool sumw2)
+T* SmartFactory::RegTH2(const char* name, const char* title, int xbins, double* xarr, int ybins,
+                        double* yarr, bool sumw2)
 {
     std::string fullname = format(name);
     std::string hname;
@@ -332,9 +313,8 @@ T* SmartFactory::RegTH2(const char* name, const char* title, int xbins,
 }
 
 template <class T>
-T* SmartFactory::RegTH3(const char* name, const char* title, int xbins,
-                        double xmin, double xmax, int ybins, double ymin,
-                        double ymax, int zbins, double zmin, double zmax,
+T* SmartFactory::RegTH3(const char* name, const char* title, int xbins, double xmin, double xmax,
+                        int ybins, double ymin, double ymax, int zbins, double zmin, double zmax,
                         bool sumw2)
 {
     std::string fullname = format(name);
@@ -346,8 +326,7 @@ T* SmartFactory::RegTH3(const char* name, const char* title, int xbins,
     T* h = (T*)getObject(hname, dir);
     if (!h)
     {
-        h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax,
-                  zbins, zmin, zmax);
+        h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
         if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
     }
     if (h)
@@ -362,9 +341,8 @@ T* SmartFactory::RegTH3(const char* name, const char* title, int xbins,
 }
 
 template <class T>
-T* SmartFactory::RegTH3(const char* name, const char* title, int xbins,
-                        double* xarr, int ybins, double* yarr, int zbins,
-                        double* zarr, bool sumw2)
+T* SmartFactory::RegTH3(const char* name, const char* title, int xbins, double* xarr, int ybins,
+                        double* yarr, int zbins, double* zarr, bool sumw2)
 {
     std::string fullname = format(name);
     std::string hname;

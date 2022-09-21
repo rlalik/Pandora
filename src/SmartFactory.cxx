@@ -95,14 +95,12 @@ SmartFactory::SmartFactory(const SmartFactory& fac)
 
 SmartFactory::~SmartFactory()
 {
-    for (uint i = 0; i < regobjects.size(); ++i)
-    {
-    }
+    for (uint i = 0; i < regobjects.size(); ++i) {}
 
     if (own_file and source and !shared)
     {
-//        source->Close();
-//        delete source;
+        //        source->Close();
+        //        delete source;
         source = nullptr;
     }
 }
@@ -126,11 +124,11 @@ void SmartFactory::listRegisteredObjects() const
     std::cout << " Number of objects: " << regobjects.size() << std::endl;
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
-        std::cout << "* " << regobjects[i].object->GetName() << " [ "
-                  << regobjects[i].raw_name << " ] "
+        std::cout << "* " << regobjects[i].object->GetName() << " [ " << regobjects[i].raw_name
+                  << " ] "
                   << " [ " << regobjects[i].reg_name << " ] "
-                  << " : " << regobjects[i].object->ClassName() << " at "
-                  << regobjects[i].object << std::endl;
+                  << " : " << regobjects[i].object->ClassName() << " at " << regobjects[i].object
+                  << std::endl;
     }
 }
 
@@ -138,8 +136,7 @@ bool SmartFactory::write(TFile* f, bool verbose)
 {
     if (!f->IsOpen())
     {
-        std::cerr << "File " << f->GetName() << " could not be open!"
-                  << std::endl;
+        std::cerr << "File " << f->GetName() << " could not be open!" << std::endl;
         return false;
     }
 
@@ -164,8 +161,7 @@ bool SmartFactory::write(TFile* f, bool verbose)
 
         if (!res)
         {
-            std::cerr << "failed writing " << hname << " to file! Aborting."
-                      << std::endl;
+            std::cerr << "failed writing " << hname << " to file! Aborting." << std::endl;
             std::exit(EXIT_FAILURE);
         }
         if (verbose) std::cout << " [ done ]" << std::endl;
@@ -188,8 +184,7 @@ bool SmartFactory::exportStructure(TFile* f, bool verbose)
 {
     if (!f->IsOpen())
     {
-        std::cerr << "File " << f->GetName() << " could not be open!"
-                  << std::endl;
+        std::cerr << "File " << f->GetName() << " could not be open!" << std::endl;
         return false;
     }
 
@@ -225,8 +220,7 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
 {
     if (!f->IsOpen())
     {
-        std::cerr << "File " << f->GetName() << " could not be open!"
-                  << std::endl;
+        std::cerr << "File " << f->GetName() << " could not be open!" << std::endl;
         return false;
     }
 
@@ -243,7 +237,7 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
     {
         f->cd();
 
-        TObjString * os = dynamic_cast<TObjString*>(obj->objects_names[i]);
+        TObjString* os = dynamic_cast<TObjString*>(obj->objects_names[i]);
         if (!os) continue;
 
         if (verbose) std::cout << "Importing " << os->String().Data();
@@ -278,8 +272,7 @@ TFile* SmartFactory::importStructure(const char* filename, bool verbose)
     return source;
 }
 
-TObject* SmartFactory::getObject(const std::string& name,
-                                 const std::string& dir) const
+TObject* SmartFactory::getObject(const std::string& name, const std::string& dir) const
 {
     std::vector<ObjectData>::const_iterator it = regobjects.begin();
     for (; it != regobjects.end(); ++it)
@@ -301,8 +294,7 @@ TObject* SmartFactory::getObject(const std::string& name,
     return nullptr;
 }
 
-TObject* SmartFactory::getObject(TDirectory* srcdir,
-                                 const std::string& fullname)
+TObject* SmartFactory::getObject(TDirectory* srcdir, const std::string& fullname)
 {
     std::string hname;
     std::string dir;
@@ -336,8 +328,7 @@ TObject* SmartFactory::getObject(TDirectory* srcdir, const std::string& name,
     return ptr;
 }
 
-void SmartFactory::splitDir(const std::string& fullname, std::string& name,
-                            std::string& dir)
+void SmartFactory::splitDir(const std::string& fullname, std::string& name, std::string& dir)
 {
     size_t slash_pos = fullname.find_last_of("/");
     if (slash_pos != std::string::npos)
@@ -361,16 +352,12 @@ bool SmartFactory::cdDir(TFile* target, const char* dir, bool automkdir) const
         if (automkdir)
             if (target->mkdir(dir, dir)) return target->cd(dir);
     }
-    else
-    {
-        return target->cd(dir);
-    }
+    else { return target->cd(dir); }
 
     return false;
 }
 
-TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
-                                 int height)
+TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width, int height)
 {
     std::string fulltitle = format(title);
     std::string fullname = format(name);
@@ -414,8 +401,8 @@ TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
     return c;
 }
 
-TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
-                                 int height, int divsqr)
+TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width, int height,
+                                 int divsqr)
 {
     TCanvas* c = RegCanvas(name, title, width, height);
     // 	if (!this->source)
@@ -423,8 +410,8 @@ TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
     return c;
 }
 
-TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
-                                 int height, int cols, int rows)
+TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width, int height,
+                                 int cols, int rows)
 {
     TCanvas* c = RegCanvas(name, title, width, height);
     // 	if (!this->source)
@@ -496,8 +483,7 @@ std::string SmartFactory::format(const std::string& name) const
     return n2;
 }
 
-std::string SmartFactory::placeholder(const std::string& pattern, char c,
-                                      const std::string& value)
+std::string SmartFactory::placeholder(const std::string& pattern, char c, const std::string& value)
 {
     std::string n = pattern;
 
@@ -511,8 +497,7 @@ std::string SmartFactory::placeholder(const std::string& pattern, char c,
     return n;
 }
 
-std::string SmartFactory::placeholder(const std::string& pattern,
-                                      const std::string& str,
+std::string SmartFactory::placeholder(const std::string& pattern, const std::string& str,
                                       const std::string& value)
 {
     std::string n = pattern;
@@ -554,8 +539,8 @@ void SmartFactory::renameAllObjects()
             ((TNamed*)regobjects[i].object)->SetName(hname.c_str());
         else
         {
-            std::cerr << "Unknow class for SetName "
-                      << regobjects[i].object->ClassName() << std::endl;
+            std::cerr << "Unknow class for SetName " << regobjects[i].object->ClassName()
+                      << std::endl;
             std::exit(EXIT_FAILURE);
         }
     }
@@ -580,8 +565,7 @@ SmartFactory& SmartFactory::operator=(const SmartFactory& fac)
 
     for (size_t i = 0; i < fac.regobjects.size(); ++i)
     {
-        if (fac.regobjects[i].object)
-        { regobjects[i].object = fac.regobjects[i].object->Clone(); }
+        if (fac.regobjects[i].object) { regobjects[i].object = fac.regobjects[i].object->Clone(); }
     }
     return *this;
 }
@@ -608,12 +592,11 @@ SmartFactory& SmartFactory::operator+=(const SmartFactory& fa)
                 if (fa_i == -1) continue;
             }
 
-            Bool_t res = ((TH1*)regobjects[i].object)
-                             ->Add((TH1*)fa.regobjects[fa_i].object);
+            Bool_t res = ((TH1*)regobjects[i].object)->Add((TH1*)fa.regobjects[fa_i].object);
             if (!res)
             {
-                std::cerr << "Failed adding histogram "
-                          << regobjects[i].object->GetName() << std::endl;
+                std::cerr << "Failed adding histogram " << regobjects[i].object->GetName()
+                          << std::endl;
             }
         }
     }
@@ -621,15 +604,13 @@ SmartFactory& SmartFactory::operator+=(const SmartFactory& fa)
 
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
-        if (regobjects[i].object->InheritsFrom("TH1") and
-            fa.regobjects[i].object)
+        if (regobjects[i].object->InheritsFrom("TH1") and fa.regobjects[i].object)
         {
-            Bool_t res = ((TH1*)regobjects[i].object)
-                             ->Add((TH1*)fa.regobjects[i].object);
+            Bool_t res = ((TH1*)regobjects[i].object)->Add((TH1*)fa.regobjects[i].object);
             if (!res)
             {
-                std::cerr << "Failed adding histogram "
-                          << regobjects[i].object->GetName() << std::endl;
+                std::cerr << "Failed adding histogram " << regobjects[i].object->GetName()
+                          << std::endl;
             }
         }
     }
@@ -640,15 +621,13 @@ SmartFactory& SmartFactory::operator-=(const SmartFactory& fa)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
-        if (regobjects[i].object->InheritsFrom("TH1") and
-            fa.regobjects[i].object)
+        if (regobjects[i].object->InheritsFrom("TH1") and fa.regobjects[i].object)
         {
-            Bool_t res = ((TH1*)regobjects[i].object)
-                             ->Add((TH1*)fa.regobjects[i].object, -1);
+            Bool_t res = ((TH1*)regobjects[i].object)->Add((TH1*)fa.regobjects[i].object, -1);
             if (!res)
             {
-                std::cerr << "Failed subtracting histogram "
-                          << regobjects[i].object->GetName() << std::endl;
+                std::cerr << "Failed subtracting histogram " << regobjects[i].object->GetName()
+                          << std::endl;
             }
         }
     }
@@ -659,15 +638,13 @@ SmartFactory& SmartFactory::operator*=(const SmartFactory& fa)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
-        if (regobjects[i].object->InheritsFrom("TH1") and
-            fa.regobjects[i].object)
+        if (regobjects[i].object->InheritsFrom("TH1") and fa.regobjects[i].object)
         {
-            Bool_t res = ((TH1*)regobjects[i].object)
-                             ->Multiply((TH1*)fa.regobjects[i].object);
+            Bool_t res = ((TH1*)regobjects[i].object)->Multiply((TH1*)fa.regobjects[i].object);
             if (!res)
             {
-                std::cerr << "Failed multiplying histogram "
-                          << regobjects[i].object->GetName() << std::endl;
+                std::cerr << "Failed multiplying histogram " << regobjects[i].object->GetName()
+                          << std::endl;
             }
         }
     }
@@ -679,8 +656,7 @@ SmartFactory& SmartFactory::operator/=(const SmartFactory& fa)
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
         // do this only for histogram
-        if (regobjects[i].object->InheritsFrom("TH1") and
-            fa.regobjects[i].object)
+        if (regobjects[i].object->InheritsFrom("TH1") and fa.regobjects[i].object)
         {
             // index for fa factory
             int fa_i = i;
@@ -733,12 +709,11 @@ SmartFactory& SmartFactory::operator/=(const SmartFactory& fa)
             // 				printf("\n");
             // 			}
 
-            Bool_t res = ((TH1*)regobjects[i].object)
-                             ->Divide((TH1*)fa.regobjects[fa_i].object);
+            Bool_t res = ((TH1*)regobjects[i].object)->Divide((TH1*)fa.regobjects[fa_i].object);
             if (!res)
             {
-                std::cerr << "Failed dividing histogram "
-                          << regobjects[i].object->GetName() << std::endl;
+                std::cerr << "Failed dividing histogram " << regobjects[i].object->GetName()
+                          << std::endl;
             }
             // 			if (regobjects[i].object->InheritsFrom("TH2") and xbins <
             // 20 and ybins < 20)
@@ -764,8 +739,7 @@ SmartFactory& SmartFactory::operator*=(Float_t num)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
-        if (regobjects[i].object->InheritsFrom("TH1"))
-        { ((TH1*)regobjects[i].object)->Scale(num); }
+        if (regobjects[i].object->InheritsFrom("TH1")) { ((TH1*)regobjects[i].object)->Scale(num); }
     }
     return *this;
 }
@@ -775,7 +749,9 @@ SmartFactory& SmartFactory::operator/=(Float_t num)
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
         if (regobjects[i].object->InheritsFrom("TH1"))
-        { ((TH1*)regobjects[i].object)->Scale(1.0 / num); }
+        {
+            ((TH1*)regobjects[i].object)->Scale(1.0 / num);
+        }
     }
     return *this;
 }
@@ -784,11 +760,9 @@ void SmartFactory::norm(const SmartFactory& fa, bool extended)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
-        if (regobjects[i].object->InheritsFrom("TH1") and
-            fa.regobjects[i].object)
+        if (regobjects[i].object->InheritsFrom("TH1") and fa.regobjects[i].object)
         {
-            Normalize(((TH1*)regobjects[i].object),
-                      ((TH1*)fa.regobjects[i].object), extended);
+            Normalize(((TH1*)regobjects[i].object), ((TH1*)fa.regobjects[i].object), extended);
         }
     }
 }
@@ -812,7 +786,9 @@ void SmartFactory::setTitleForAll(const TString& title)
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
         if (regobjects[i].object->InheritsFrom("TH1"))
-        { ((TH1*)regobjects[i].object)->SetTitle(title); }
+        {
+            ((TH1*)regobjects[i].object)->SetTitle(title);
+        }
     }
 }
 
@@ -841,8 +817,7 @@ void SmartFactory::printIntegrals() const
 }
 
 void SmartFactory::callFunctionOnObjects(const SmartFactory* fac,
-                                         void (*fun)(TObject* dst,
-                                                     const TObject* src))
+                                         void (*fun)(TObject* dst, const TObject* src))
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -856,8 +831,7 @@ void SmartFactory::reset()
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
-        if (regobjects[i].object->InheritsFrom("TH1"))
-        { ((TH1*)regobjects[i].object)->Reset(); }
+        if (regobjects[i].object->InheritsFrom("TH1")) { ((TH1*)regobjects[i].object)->Reset(); }
     }
 }
 
