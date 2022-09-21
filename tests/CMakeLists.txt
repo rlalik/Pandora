@@ -1,15 +1,22 @@
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
-find_package(cppunit)
+check_3rd_party_tool(googletest 1.12.0 https://github.com/google/googletest.git
+                     TAG release-1.12.0 AUTO)
+list(APPEND CMAKE_MODULE_PATH ${cmake-scripts_SOURCE_DIR})
 
-file(GLOB UnitTests_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_tests.cpp" )
+find_package(GTest)
 
-add_executable(UnitTester test_runner.cpp ${UnitTests_SRCS})
-target_link_libraries(UnitTester SmartFactory ${CPPUNIT_LIBRARIES})
+# configure_file(tests_config.h.in tests_config.h)
 
-foreach(test ${UnitTests_SRCS})
-    file(READ ${test} test_file)
-    string(REGEX MATCH "CPPUNIT_TEST_SUITE\(.([A-Za-z0-9 ]+).\)" _ ${test_file})
-    string(STRIP ${CMAKE_MATCH_2} suite_name)
-    get_filename_component(TestName ${test} NAME_WE)
-    add_test(NAME ${suite_name} COMMAND UnitTester ${suite_name})
-endforeach(test)
+add_executable(gtests basic_tests.cpp copy_move_tests.cpp)
+
+if(TARGET GTest::gtest_main)
+  # new cmake provided
+  set(GTEST_TRG GTest::gtest_main)
+else()
+  # old cmake and pc files
+  set(GTEST_TRG gtest gtest_main)
+endif()
+
+target_link_libraries(gtests PRIVATE ${GTEST_TRG} RT::SmartFactory)
+target_code_coverage(gtests ALL)
+
+gtest_discover_tests(gtests)

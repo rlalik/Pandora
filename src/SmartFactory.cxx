@@ -17,6 +17,8 @@
  *
  */
 
+#include "SmartFactory.h"
+
 #include <TCanvas.h>
 #include <TCollection.h>
 #include <TDirectory.h>
@@ -24,10 +26,9 @@
 #include <TFile.h>
 #include <TKey.h>
 #include <TObject.h>
+
 #include <iomanip>
 #include <iostream>
-
-#include "SmartFactory.h"
 
 float Normalize(TH1* h, TH1* href, bool extended = false)
 {
@@ -155,8 +156,7 @@ bool SmartFactory::write(TFile* f, bool verbose)
 
         if (verbose)
             std::cout << std::left << std::setw(70)
-                      << std::string(" + Writing " + regobjects[i].reg_name +
-                                     " ... ");
+                      << (TString(" + Writing ") + regobjects[i].reg_name.c_str() + " ... ");
 
         int res = regobjects[i].object->Write(0, TObject::kOverwrite);
 
@@ -199,10 +199,10 @@ bool SmartFactory::exportStructure(TFile* f, bool verbose)
 
     std::vector<ObjectData>::const_iterator it = regobjects.begin();
     for (; it != regobjects.end(); ++it)
-        obj.objnames.push_back(it->reg_name);
+        obj.objects_names.AddLast(new TObjString(it->reg_name.c_str()));
 
-    obj.objects_name = obj_name.c_str();
-    obj.directory_name = dir_name.c_str();
+    obj.name = obj_name.c_str();
+    obj.directory = dir_name.c_str();
 
     f->cd();
 
@@ -232,19 +232,23 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
 
     setSource(f);
 
-    SmartFactoryObj* obj;
+    SmartFactoryObj* obj = nullptr;
     f->GetObject<SmartFactoryObj>((this->fac_name + "_fac").c_str(), obj);
     if (!obj) return false;
 
-    obj_name = obj->objects_name.GetString().Data();
-    dir_name = obj->directory_name.GetString().Data();
+    obj_name = obj->name;
+    dir_name = obj->directory;
 
-    for (uint i = 0; i < obj->objnames.size(); ++i)
+    for (uint i = 0; i < obj->objects_names.GetEntries(); ++i)
     {
         f->cd();
-        if (verbose) std::cout << "Importing " << obj->objnames[i];
 
-        TObject* o = this->getObject(f, obj->objnames[i].c_str());
+        TObjString * os = dynamic_cast<TObjString*>(obj->objects_names[i]);
+        if (!os) continue;
+
+        if (verbose) std::cout << "Importing " << os->String().Data();
+
+        TObject* o = this->getObject(f, os->String().Data());
         if (o)
         {
             this->RegObject(o);

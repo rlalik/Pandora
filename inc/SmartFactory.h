@@ -43,9 +43,11 @@ class TFile;
 
 struct SmartFactoryObj : public TNamed
 {
-    std::vector<std::string> objnames;
-    TObjString objects_name;
-    TObjString directory_name;
+    SmartFactoryObj() { objects_names.SetOwner(); }
+
+    TObjArray objects_names;
+    std::string name;
+    std::string directory;
 
     ClassDef(SmartFactoryObj, 1);
 };
