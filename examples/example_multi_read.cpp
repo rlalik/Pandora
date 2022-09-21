@@ -3,7 +3,7 @@
 #undef NDEBUG
 #include <assert.h>
 
-#include "SmartFactory.h"
+#include "Pandora.h"
 
 #include "TCanvas.h"
 #include "TFile.h"
@@ -20,65 +20,65 @@ void bar(int i)
 
 void write_func()
 {
-    // create factory
+    // create box
 
-    SmartFactory* fac = new SmartFactory("factory1");
+    Pandora* box = new Pandora("box1");
 
     // fill with histograms
     char hname[100];
     for (int i = 0; i < 100; ++i)
     {
         sprintf(hname, hist_pattern, i);
-        TH2F* h = fac->RegTH2<TH2F>(hname, "Histogram - loop", 100, -5, 5, 100, -5, 5);
+        TH2F* h = box->RegTH2<TH2F>(hname, "Histogram - loop", 100, -5, 5, 100, -5, 5);
 
         for (int j = 0; j < 100 * 100; ++j)
             h->SetBinContent(j + 1, sqrt(j));
 
         // 		sprintf(hname, can_pattern, i);
-        // 		TCanvas * c = fac->RegCanvas(hname, "Canvas - loop", 800, 600);
+        // 		TCanvas * c = box->RegCanvas(hname, "Canvas - loop", 800, 600);
         // 		c->cd(0);
         // 		h->Draw("colz");
 
         bar(i);
     }
 
-    fac->rename("renamed_factory");
-    fac->chdir("renamed_directory");
+    box->rename("renamed_box");
+    box->chdir("renamed_directory");
 
     // list objects
-    // 	fac->listRegisterdObjects();
+    // 	box->listRegisterdObjects();
 
-    // export factory to file
-    fac->exportStructure("example_multi.root", true);
+    // export box to file
+    box->exportStructure("example_multi.root", true);
 }
 
 void loop_read_func()
 {
-    // create factory
-    SmartFactory* fac = new SmartFactory("factory1");
+    // create box
+    Pandora* box = new Pandora("box1");
 
-    // import from file and register in the factory
+    // import from file and register in the box
     // data will be stored in memory, file remains open
-    TFile* f = fac->importStructure("example_multi.root");
+    TFile* f = box->importStructure("example_multi.root");
 
     // list of registered objects
-    // 	fac->listRegisterdObjects();
+    // 	box->listRegisterdObjects();
 
     // you can fetch specific object by its name
     char hname[100];
     for (int i = 0; i < 100; ++i)
     {
         sprintf(hname, hist_pattern, i);
-        TH2F* h1 = (TH2F*)fac->getObject(hname);
+        TH2F* h1 = (TH2F*)box->getObject(hname);
         // if failed, then objects are not read from file
         assert(h1 != nullptr);
 
         // 		sprintf(hname, can_pattern, i);
-        // 		TCanvas * c1 = (TCanvas*)fac->getObject(hname);
+        // 		TCanvas * c1 = (TCanvas*)box->getObject(hname);
         // 		assert(c1 != nullptr);
     }
 
-    delete fac;
+    delete box;
 
     // file must be closed by user
     f->Close();

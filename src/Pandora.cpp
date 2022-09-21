@@ -17,7 +17,7 @@
  *
  */
 
-#include "SmartFactory.h"
+#include "Pandora.h"
 
 #include <TCanvas.h>
 #include <TCollection.h>
@@ -67,19 +67,19 @@ float Normalize(TH1* h, TH1* href, bool extended = false)
     return 0.;
 }
 
-SmartFactory::SmartFactory(const char* name)
+Pandora::Pandora(const char* name)
     : fac_name(name), obj_name(name), dir_name(name), source(nullptr), shared(kFALSE),
       own_file(false)
 {
 }
 
-SmartFactory::SmartFactory(const char* name, const char* dir)
+Pandora::Pandora(const char* name, const char* dir)
     : fac_name(name), obj_name(name), dir_name(dir), source(nullptr), shared(kFALSE),
       own_file(false)
 {
 }
 
-SmartFactory::SmartFactory(const SmartFactory& fac)
+Pandora::Pandora(const Pandora& fac)
 {
     fac_name = fac.fac_name;
     obj_name = fac.obj_name;
@@ -93,7 +93,7 @@ SmartFactory::SmartFactory(const SmartFactory& fac)
     regobjects = fac.regobjects;
 }
 
-SmartFactory::~SmartFactory()
+Pandora::~Pandora()
 {
     for (uint i = 0; i < regobjects.size(); ++i) {}
 
@@ -105,7 +105,7 @@ SmartFactory::~SmartFactory()
     }
 }
 
-void SmartFactory::validate()
+void Pandora::validate()
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -118,7 +118,7 @@ void SmartFactory::validate()
     }
 }
 
-void SmartFactory::listRegisteredObjects() const
+void Pandora::listRegisteredObjects() const
 {
     std::cout << "List of registered objects in " << fac_name << std::endl;
     std::cout << " Number of objects: " << regobjects.size() << std::endl;
@@ -132,7 +132,7 @@ void SmartFactory::listRegisteredObjects() const
     }
 }
 
-bool SmartFactory::write(TFile* f, bool verbose)
+bool Pandora::write(TFile* f, bool verbose)
 {
     if (!f->IsOpen())
     {
@@ -170,7 +170,7 @@ bool SmartFactory::write(TFile* f, bool verbose)
     return true;
 }
 
-bool SmartFactory::write(const char* filename, bool verbose)
+bool Pandora::write(const char* filename, bool verbose)
 {
     TFile* f = new TFile(filename, "RECREATE");
 
@@ -180,7 +180,7 @@ bool SmartFactory::write(const char* filename, bool verbose)
     return res;
 }
 
-bool SmartFactory::exportStructure(TFile* f, bool verbose)
+bool Pandora::exportStructure(TFile* f, bool verbose)
 {
     if (!f->IsOpen())
     {
@@ -190,7 +190,7 @@ bool SmartFactory::exportStructure(TFile* f, bool verbose)
 
     validate();
 
-    SmartFactoryObj obj;
+    PandoraObj obj;
 
     std::vector<ObjectData>::const_iterator it = regobjects.begin();
     for (; it != regobjects.end(); ++it)
@@ -206,7 +206,7 @@ bool SmartFactory::exportStructure(TFile* f, bool verbose)
     return write(f, verbose);
 }
 
-bool SmartFactory::exportStructure(const char* filename, bool verbose)
+bool Pandora::exportStructure(const char* filename, bool verbose)
 {
     TFile* f = new TFile(filename, "RECREATE");
 
@@ -216,7 +216,7 @@ bool SmartFactory::exportStructure(const char* filename, bool verbose)
     return res;
 }
 
-bool SmartFactory::importStructure(TFile* f, bool verbose)
+bool Pandora::importStructure(TFile* f, bool verbose)
 {
     if (!f->IsOpen())
     {
@@ -226,8 +226,8 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
 
     setSource(f);
 
-    SmartFactoryObj* obj = nullptr;
-    f->GetObject<SmartFactoryObj>((this->fac_name + "_fac").c_str(), obj);
+    PandoraObj* obj = nullptr;
+    f->GetObject<PandoraObj>((this->fac_name + "_fac").c_str(), obj);
     if (!obj) return false;
 
     obj_name = obj->name;
@@ -257,7 +257,7 @@ bool SmartFactory::importStructure(TFile* f, bool verbose)
     return true;
 }
 
-TFile* SmartFactory::importStructure(const char* filename, bool verbose)
+TFile* Pandora::importStructure(const char* filename, bool verbose)
 {
     source = new TFile(filename, "READ");
 
@@ -272,7 +272,7 @@ TFile* SmartFactory::importStructure(const char* filename, bool verbose)
     return source;
 }
 
-TObject* SmartFactory::getObject(const std::string& name, const std::string& dir) const
+TObject* Pandora::getObject(const std::string& name, const std::string& dir) const
 {
     std::vector<ObjectData>::const_iterator it = regobjects.begin();
     for (; it != regobjects.end(); ++it)
@@ -294,7 +294,7 @@ TObject* SmartFactory::getObject(const std::string& name, const std::string& dir
     return nullptr;
 }
 
-TObject* SmartFactory::getObject(TDirectory* srcdir, const std::string& fullname)
+TObject* Pandora::getObject(TDirectory* srcdir, const std::string& fullname)
 {
     std::string hname;
     std::string dir;
@@ -303,8 +303,7 @@ TObject* SmartFactory::getObject(TDirectory* srcdir, const std::string& fullname
     return getObject(srcdir, hname, dir);
 }
 
-TObject* SmartFactory::getObject(TDirectory* srcdir, const std::string& name,
-                                 const std::string& dir)
+TObject* Pandora::getObject(TDirectory* srcdir, const std::string& name, const std::string& dir)
 {
     static pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
@@ -328,7 +327,7 @@ TObject* SmartFactory::getObject(TDirectory* srcdir, const std::string& name,
     return ptr;
 }
 
-void SmartFactory::splitDir(const std::string& fullname, std::string& name, std::string& dir)
+void Pandora::splitDir(const std::string& fullname, std::string& name, std::string& dir)
 {
     size_t slash_pos = fullname.find_last_of("/");
     if (slash_pos != std::string::npos)
@@ -343,7 +342,7 @@ void SmartFactory::splitDir(const std::string& fullname, std::string& name, std:
     }
 }
 
-bool SmartFactory::cdDir(TFile* target, const char* dir, bool automkdir) const
+bool Pandora::cdDir(TFile* target, const char* dir, bool automkdir) const
 {
     if (!target) return false;
 
@@ -357,7 +356,7 @@ bool SmartFactory::cdDir(TFile* target, const char* dir, bool automkdir) const
     return false;
 }
 
-TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width, int height)
+TCanvas* Pandora::RegCanvas(const char* name, const char* title, int width, int height)
 {
     std::string fulltitle = format(title);
     std::string fullname = format(name);
@@ -401,8 +400,7 @@ TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
     return c;
 }
 
-TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width, int height,
-                                 int divsqr)
+TCanvas* Pandora::RegCanvas(const char* name, const char* title, int width, int height, int divsqr)
 {
     TCanvas* c = RegCanvas(name, title, width, height);
     // 	if (!this->source)
@@ -410,8 +408,8 @@ TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
     return c;
 }
 
-TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width, int height,
-                                 int cols, int rows)
+TCanvas* Pandora::RegCanvas(const char* name, const char* title, int width, int height, int cols,
+                            int rows)
 {
     TCanvas* c = RegCanvas(name, title, width, height);
     // 	if (!this->source)
@@ -419,7 +417,7 @@ TCanvas* SmartFactory::RegCanvas(const char* name, const char* title, int width,
     return c;
 }
 
-TObject* SmartFactory::RegClone(TObject* obj, const std::string& new_name)
+TObject* Pandora::RegClone(TObject* obj, const std::string& new_name)
 {
     std::string fullname = format(new_name);
     std::string hname;
@@ -440,7 +438,7 @@ TObject* SmartFactory::RegClone(TObject* obj, const std::string& new_name)
     return c;
 }
 
-TObject* SmartFactory::RegObject(const std::string& name)
+TObject* Pandora::RegObject(const std::string& name)
 {
     std::string fullname = format(name);
     std::string hname;
@@ -462,7 +460,7 @@ TObject* SmartFactory::RegObject(const std::string& name)
     return obj;
 }
 
-TObject* SmartFactory::RegObject(TObject* obj)
+TObject* Pandora::RegObject(TObject* obj)
 {
     if (obj)
     {
@@ -476,14 +474,14 @@ TObject* SmartFactory::RegObject(TObject* obj)
     return obj;
 }
 
-std::string SmartFactory::format(const std::string& name) const
+std::string Pandora::format(const std::string& name) const
 {
     std::string n1 = placeholder(name, "@@@d", dir_name.c_str());
     std::string n2 = placeholder(n1, "@@@a", obj_name.c_str());
     return n2;
 }
 
-std::string SmartFactory::placeholder(const std::string& pattern, char c, const std::string& value)
+std::string Pandora::placeholder(const std::string& pattern, char c, const std::string& value)
 {
     std::string n = pattern;
 
@@ -497,8 +495,8 @@ std::string SmartFactory::placeholder(const std::string& pattern, char c, const 
     return n;
 }
 
-std::string SmartFactory::placeholder(const std::string& pattern, const std::string& str,
-                                      const std::string& value)
+std::string Pandora::placeholder(const std::string& pattern, const std::string& str,
+                                 const std::string& value)
 {
     std::string n = pattern;
 
@@ -512,19 +510,19 @@ std::string SmartFactory::placeholder(const std::string& pattern, const std::str
     return n;
 }
 
-void SmartFactory::rename(const char* newname)
+void Pandora::rename(const char* newname)
 {
     obj_name = newname;
     renameAllObjects();
 }
 
-void SmartFactory::chdir(const char* newdir)
+void Pandora::chdir(const char* newdir)
 {
     dir_name = newdir;
     renameAllObjects();
 }
 
-void SmartFactory::renameAllObjects()
+void Pandora::renameAllObjects()
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -546,7 +544,7 @@ void SmartFactory::renameAllObjects()
     }
 }
 
-SmartFactory& SmartFactory::operator=(const SmartFactory& fac)
+Pandora& Pandora::operator=(const Pandora& fac)
 {
     // 	fac_name = fac.fac_name;
     obj_name = fac.obj_name;
@@ -570,7 +568,7 @@ SmartFactory& SmartFactory::operator=(const SmartFactory& fac)
     return *this;
 }
 
-SmartFactory& SmartFactory::operator+=(const SmartFactory& fa)
+Pandora& Pandora::operator+=(const Pandora& fa)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -617,7 +615,7 @@ SmartFactory& SmartFactory::operator+=(const SmartFactory& fa)
     return *this;
 }
 
-SmartFactory& SmartFactory::operator-=(const SmartFactory& fa)
+Pandora& Pandora::operator-=(const Pandora& fa)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -634,7 +632,7 @@ SmartFactory& SmartFactory::operator-=(const SmartFactory& fa)
     return *this;
 }
 
-SmartFactory& SmartFactory::operator*=(const SmartFactory& fa)
+Pandora& Pandora::operator*=(const Pandora& fa)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -651,7 +649,7 @@ SmartFactory& SmartFactory::operator*=(const SmartFactory& fa)
     return *this;
 }
 
-SmartFactory& SmartFactory::operator/=(const SmartFactory& fa)
+Pandora& Pandora::operator/=(const Pandora& fa)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -735,7 +733,7 @@ SmartFactory& SmartFactory::operator/=(const SmartFactory& fa)
     return *this;
 }
 
-SmartFactory& SmartFactory::operator*=(Float_t num)
+Pandora& Pandora::operator*=(Float_t num)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -744,7 +742,7 @@ SmartFactory& SmartFactory::operator*=(Float_t num)
     return *this;
 }
 
-SmartFactory& SmartFactory::operator/=(Float_t num)
+Pandora& Pandora::operator/=(Float_t num)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -756,7 +754,7 @@ SmartFactory& SmartFactory::operator/=(Float_t num)
     return *this;
 }
 
-void SmartFactory::norm(const SmartFactory& fa, bool extended)
+void Pandora::norm(const Pandora& fa, bool extended)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -767,7 +765,7 @@ void SmartFactory::norm(const SmartFactory& fa, bool extended)
     }
 }
 
-void SmartFactory::norm(Float_t num)
+void Pandora::norm(Float_t num)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -781,7 +779,7 @@ void SmartFactory::norm(Float_t num)
     }
 }
 
-void SmartFactory::setTitleForAll(const TString& title)
+void Pandora::setTitleForAll(const TString& title)
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -792,7 +790,7 @@ void SmartFactory::setTitleForAll(const TString& title)
     }
 }
 
-void SmartFactory::printCounts() const
+void Pandora::printCounts() const
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -804,7 +802,7 @@ void SmartFactory::printCounts() const
     }
 }
 
-void SmartFactory::printIntegrals() const
+void Pandora::printIntegrals() const
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -816,8 +814,8 @@ void SmartFactory::printIntegrals() const
     }
 }
 
-void SmartFactory::callFunctionOnObjects(const SmartFactory* fac,
-                                         void (*fun)(TObject* dst, const TObject* src))
+void Pandora::callFunctionOnObjects(const Pandora* fac,
+                                    void (*fun)(TObject* dst, const TObject* src))
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -827,7 +825,7 @@ void SmartFactory::callFunctionOnObjects(const SmartFactory* fac,
     }
 }
 
-void SmartFactory::reset()
+void Pandora::reset()
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -835,7 +833,7 @@ void SmartFactory::reset()
     }
 }
 
-int SmartFactory::findIndex(TObject* obj) const
+int Pandora::findIndex(TObject* obj) const
 {
     for (uint i = 0; i < regobjects.size(); ++i)
         if (regobjects[i].object == obj) return i;
@@ -843,7 +841,7 @@ int SmartFactory::findIndex(TObject* obj) const
     return -1;
 }
 
-TObject* SmartFactory::findObject(int index) const
+TObject* Pandora::findObject(int index) const
 {
     if (index >= 0 and index < (int)regobjects.size())
         return regobjects[index].object;
@@ -851,7 +849,7 @@ TObject* SmartFactory::findObject(int index) const
         return nullptr;
 }
 
-int SmartFactory::findIndexByRawname(const std::string& name) const
+int Pandora::findIndexByRawname(const std::string& name) const
 {
     for (uint i = 0; i < regobjects.size(); ++i)
         if (name == regobjects[i].raw_name) return i;

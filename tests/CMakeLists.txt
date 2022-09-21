@@ -16,7 +16,7 @@ else()
   set(GTEST_TRG gtest gtest_main)
 endif()
 
-target_link_libraries(gtests PRIVATE ${GTEST_TRG} RT::SmartFactory)
+target_link_libraries(gtests PRIVATE ${GTEST_TRG} RT::Pandora)
 target_code_coverage(gtests ALL)
 
 gtest_discover_tests(gtests)

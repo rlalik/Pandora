@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <SmartFactory.h>
+#include <Pandora.h>
 
 TEST(BasicTests, CopyMoveCase)
 {
-    SmartFactory* sf1 = new SmartFactory("test_factory_1");
-    SmartFactory* sf2 = new SmartFactory("test_factory_2");
+    Pandora* sf1 = new Pandora("test_factory_1");
+    Pandora* sf2 = new Pandora("test_factory_2");
 
     TH1I* h1 = sf1->RegTH1<TH1I>("h1", "h1", 10, 0, 10, 1);
 

@@ -5,7 +5,7 @@
 #pragma link off all functions;
 
 /* clang-format off */
-#pragma link C++ class SmartFactory-;
-#pragma link C++ class SmartFactoryObj;
+#pragma link C++ class Pandora-;
+#pragma link C++ class PandoraObj;
 /* clang-format on */
 #endif

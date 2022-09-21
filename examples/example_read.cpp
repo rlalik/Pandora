@@ -1,4 +1,4 @@
-#include "SmartFactory.h"
+#include "Pandora.h"
 
 #include <TFile.h>
 
@@ -47,21 +47,21 @@ int main(int argc, char** argv)
         }
     }
 
-    // create factory
-    SmartFactory* fac = new SmartFactory("factory1");
+    // create box
+    Pandora* box = new Pandora("box1");
 
-    // import from file and register in the factory
+    // import from file and register in the box
     // data will be stored in memory, file remains open
-    TFile* f = fac->importStructure("example.root", verbose_flag);
+    TFile* f = box->importStructure("example.root", verbose_flag);
 
     // list of registered objects
-    fac->listRegisteredObjects();
+    box->listRegisteredObjects();
 
     // you can fetch specific object by its name
-    TH1F* h1 = (TH1F*)fac->getObject("dir1/hist1");
-    TH1F* h2 = (TH1F*)fac->getObject("hist2");
-    TH1F* h3 = (TH1F*)fac->getObject("hist3", "dir1/dir2");
-    TH1F* h4 = (TH1F*)fac->getObject("@@@d/hist_@@@a_placeholders");
+    TH1F* h1 = (TH1F*)box->getObject("dir1/hist1");
+    TH1F* h2 = (TH1F*)box->getObject("hist2");
+    TH1F* h3 = (TH1F*)box->getObject("hist3", "dir1/dir2");
+    TH1F* h4 = (TH1F*)box->getObject("@@@d/hist_@@@a_placeholders");
 
     // if failed, then objects are not read from file
     assert(h1 != nullptr);

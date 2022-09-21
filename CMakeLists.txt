@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(
-  SmartFactory
-  VERSION 0.9.0
+  Pandora
+  VERSION 0.9.1
   LANGUAGES CXX)
 
 include(GNUInstallDirs)
@@ -40,7 +40,7 @@ list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS Gpad)
 include(${ROOT_USE_FILE})
 
-add_library(${CMAKE_PROJECT_NAME} SHARED src/SmartFactory.cxx)
+add_library(${CMAKE_PROJECT_NAME} SHARED src/Pandora.cpp)
 add_library(RT::${CMAKE_PROJECT_NAME} ALIAS ${CMAKE_PROJECT_NAME})
 
 target_include_directories(
@@ -50,12 +50,12 @@ target_include_directories(
   PRIVATE ${CMAKE_SOURCE_DIR}/inc)
 
 if(ROOT_VERSION VERSION_LESS 6)
-  root_generate_dictionary(G__${CMAKE_PROJECT_NAME}_cc SmartFactory.h LINKDEF
+  root_generate_dictionary(G__${CMAKE_PROJECT_NAME}_cc Pandora.h LINKDEF
                            LinkDef.h)
   target_sources(${CMAKE_PROJECT_NAME} PRIVATE G__${CMAKE_PROJECT_NAME}_cc)
   target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Gpad)
 else()
-  root_generate_dictionary(G__${CMAKE_PROJECT_NAME}_cc SmartFactory.h MODULE
+  root_generate_dictionary(G__${CMAKE_PROJECT_NAME}_cc Pandora.h MODULE
                            ${CMAKE_PROJECT_NAME} LINKDEF LinkDef.h)
   target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ROOT::Gpad)
 
@@ -65,7 +65,7 @@ set_target_properties(
   ${CMAKE_PROJECT_NAME}
   PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR}
              VERSION ${PROJECT_VERSION}
-             PUBLIC_HEADER "inc/SmartFactory.h")
+             PUBLIC_HEADER "inc/Pandora.h")
 
 install(
   TARGETS ${CMAKE_PROJECT_NAME}

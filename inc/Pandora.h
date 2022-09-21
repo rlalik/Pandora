@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef SMARTFACTORY_H
-#define SMARTFACTORY_H
+#ifndef RT_PANDORA_H
+#define RT_PANDORA_H
 
 #include <algorithm>
 #include <iostream>
@@ -36,34 +36,34 @@ class TDirectory;
 class TCanvas;
 class TFile;
 
-struct SmartFactoryObj : public TNamed
+struct PandoraObj : public TNamed
 {
-    SmartFactoryObj() { objects_names.SetOwner(); }
+    PandoraObj() { objects_names.SetOwner(); }
 
     TObjArray objects_names;
     std::string name;
     std::string directory;
 
-    ClassDef(SmartFactoryObj, 1);
+    ClassDef(PandoraObj, 1);
 };
 
-class SmartFactory
+class Pandora
 {
 public:
-    SmartFactory(const char* name);
-    SmartFactory(const char* name, const char* dir);
-    SmartFactory(const SmartFactory& fac);
-    virtual ~SmartFactory();
+    Pandora(const char* name);
+    Pandora(const char* name, const char* dir);
+    Pandora(const Pandora& fac);
+    virtual ~Pandora();
 
     // operators
-    SmartFactory& operator=(const SmartFactory& fa);
-    SmartFactory& operator+=(const SmartFactory& fa);
-    SmartFactory& operator-=(const SmartFactory& fa);
-    SmartFactory& operator*=(const SmartFactory& fa);
-    SmartFactory& operator/=(const SmartFactory& fa);
+    Pandora& operator=(const Pandora& fa);
+    Pandora& operator+=(const Pandora& fa);
+    Pandora& operator-=(const Pandora& fa);
+    Pandora& operator*=(const Pandora& fa);
+    Pandora& operator/=(const Pandora& fa);
 
-    SmartFactory& operator*=(Float_t num);
-    SmartFactory& operator/=(Float_t num);
+    Pandora& operator*=(Float_t num);
+    Pandora& operator/=(Float_t num);
 
     virtual std::string name() const { return fac_name; }
     virtual std::string objects_name() const { return obj_name; }
@@ -142,7 +142,7 @@ public:
     virtual void reset();
 
     // operation on histograms
-    virtual void norm(const SmartFactory& fa, bool extended = false);
+    virtual void norm(const Pandora& fa, bool extended = false);
     virtual void norm(Float_t num);
 
     virtual void printCounts() const;
@@ -156,7 +156,7 @@ public:
                                    const std::string& value);
     static std::string placeholder(const std::string& pattern, char c, const std::string& value);
 
-    virtual void callFunctionOnObjects(const SmartFactory* fac,
+    virtual void callFunctionOnObjects(const Pandora* fac,
                                        void (*fun)(TObject* dst, const TObject* src));
 
     virtual int findIndex(TObject* obj) const;
@@ -166,8 +166,8 @@ public:
     virtual void setFileOwner(bool owner = true) { own_file = owner; }
 
 private:
-    void operator+(const SmartFactory&){};
-    void operator-(const SmartFactory&){};
+    void operator+(const Pandora&){};
+    void operator-(const Pandora&){};
 
     void renameAllObjects();
 
@@ -202,8 +202,8 @@ private:
 };
 
 template <class T>
-T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double min, double max,
-                        bool sumw2)
+T* Pandora::RegTH1(const char* name, const char* title, int bins, double min, double max,
+                   bool sumw2)
 {
     std::string fullname = format(name);
     std::string fulltitle = format(title);
@@ -231,7 +231,7 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double mi
 }
 
 template <class T>
-T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double* arr, bool sumw2)
+T* Pandora::RegTH1(const char* name, const char* title, int bins, double* arr, bool sumw2)
 {
     std::string fullname = format(name);
     std::string fulltitle = format(title);
@@ -259,8 +259,8 @@ T* SmartFactory::RegTH1(const char* name, const char* title, int bins, double* a
 }
 
 template <class T>
-T* SmartFactory::RegTH2(const char* name, const char* title, int xbins, double xmin, double xmax,
-                        int ybins, double ymin, double ymax, bool sumw2)
+T* Pandora::RegTH2(const char* name, const char* title, int xbins, double xmin, double xmax,
+                   int ybins, double ymin, double ymax, bool sumw2)
 {
     std::string fullname = format(name);
     std::string hname;
@@ -286,8 +286,8 @@ T* SmartFactory::RegTH2(const char* name, const char* title, int xbins, double x
 }
 
 template <class T>
-T* SmartFactory::RegTH2(const char* name, const char* title, int xbins, double* xarr, int ybins,
-                        double* yarr, bool sumw2)
+T* Pandora::RegTH2(const char* name, const char* title, int xbins, double* xarr, int ybins,
+                   double* yarr, bool sumw2)
 {
     std::string fullname = format(name);
     std::string hname;
@@ -313,9 +313,9 @@ T* SmartFactory::RegTH2(const char* name, const char* title, int xbins, double* 
 }
 
 template <class T>
-T* SmartFactory::RegTH3(const char* name, const char* title, int xbins, double xmin, double xmax,
-                        int ybins, double ymin, double ymax, int zbins, double zmin, double zmax,
-                        bool sumw2)
+T* Pandora::RegTH3(const char* name, const char* title, int xbins, double xmin, double xmax,
+                   int ybins, double ymin, double ymax, int zbins, double zmin, double zmax,
+                   bool sumw2)
 {
     std::string fullname = format(name);
     std::string hname;
@@ -341,8 +341,8 @@ T* SmartFactory::RegTH3(const char* name, const char* title, int xbins, double x
 }
 
 template <class T>
-T* SmartFactory::RegTH3(const char* name, const char* title, int xbins, double* xarr, int ybins,
-                        double* yarr, int zbins, double* zarr, bool sumw2)
+T* Pandora::RegTH3(const char* name, const char* title, int xbins, double* xarr, int ybins,
+                   double* yarr, int zbins, double* zarr, bool sumw2)
 {
     std::string fullname = format(name);
     std::string hname;
@@ -367,7 +367,7 @@ T* SmartFactory::RegTH3(const char* name, const char* title, int xbins, double* 
     return h;
 }
 
-template <class T> T* SmartFactory::RegGraph(const char* name, int points)
+template <class T> T* Pandora::RegGraph(const char* name, int points)
 {
     std::string fullname = format(name);
 
@@ -393,4 +393,4 @@ template <class T> T* SmartFactory::RegGraph(const char* name, int points)
     return h;
 }
 
-#endif // SMARTFACTORY_H
+#endif // RT_PANDORA_H
