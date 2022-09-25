@@ -37,40 +37,16 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    name: "${{ matrix.compiler.name }} c++${{ matrix.std }} cmake-${{ matrix.cmake-version }} root-${{ matrix.root-version }}"
+    name: "${{ matrix.compiler }} c++${{ matrix.std }} cmake-${{ matrix.cmake-version }} root-${{ matrix.root-version }}"
 
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         build_type: [ Release ]
-        compiler:
-        - {
-            name: "GCC-9",
-            cc: "gcc-9",
-            cxx: "g++-9",
-            package: g++-9,
-          }
-        - {
-            name: "GCC-10",
-            cc: "gcc-10",
-            cxx: "g++-10",
-            package: g++-10,
-          }
-        - {
-            name: "Clang-11",
-            cc: "clang-11",
-            cxx: "clang++-11",
-            package: clang-11,
-          }
-        - {
-            name: "Clang-12",
-            cc: "clang-12",
-            cxx: "clang++-12",
-            package: clang-12,
-          }
-        cmake-version: [ 3.15, 3.16, 3.24 ]
-        root-version: [ 5.34.38, 6.24.06, 6.26.04 ]
+        compiler: [ gcc-9, gcc-10, gcc-11, gcc-12, clang-11, clang-12, clang-13, clang-14, clang-15 ]
+        cmake-version: [ 3.15, 3.24 ]
+        root-version: [ 5.34.38, 6.24.06, 6.26.06 ]
         std: [ 11, 14, 17, 20 ]
         exclude:
           - root-version: 5.34.38
@@ -90,10 +66,15 @@ jobs:
           echo github.event.action: ${{ github.event.action }}
           echo github.event_name: ${{ github.event_name }}
 
+      - name: Setup compiler
+        id: setup_cc
+        uses: rlalik/setup-cpp-compiler@v1.1
+        with:
+          compiler: ${{ matrix.compiler }}
+
       - name: Install common dependencies
         run: |
           sudo apt update
-          sudo apt install ${{ matrix.compiler.package }} -y
           sudo apt install libgtest-dev lcov rapidjson-dev libcurl4-openssl-dev -y
           sudo apt install python3-numpy libtbb-dev libxxhash0 -y
           cmake --version
@@ -113,6 +94,9 @@ jobs:
 
       - name: Configure
         shell: bash
+        env:
+          CC: ${{ steps.setup_cc.outputs.cc }}
+          CXX: ${{ steps.setup_cc.outputs.cxx }}
         run: |
           . /etc/profile
           root-config --version
