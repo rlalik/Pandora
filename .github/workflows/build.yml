@@ -34,9 +34,8 @@ jobs:
         check-path: ${{ matrix.path }}
         fallback-style: 'Mozilla' # optional
 
-  # This workflow contains a single job called "build"
+
   build:
-    # The type of runner that the job will run on
     name: ${{ matrix.compiler }} c++${{ matrix.std }} cmake-${{ matrix.cmake-version }} root-${{ matrix.root-version }}
 
     strategy:
@@ -44,16 +43,14 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         build_type: [ Release ]
-        compiler: [ gcc-8, gcc-latest, clang-8, clang-latest ]
+        compiler: [ gcc-8, gcc-latest, clang-9, clang-latest ]
         cmake-version: [ 3.15, '' ]
-        root-version: [ 5.34.38, 6.24.06, 6.26.06 ]
+        root-version: [ 5.34.38, 6.26.06 ]
         std: [ 11, 14, 17, 20 ]
         exclude:
         - root-version: 5.34.38
           std: 17
         - root-version: 5.34.38
-          std: 20
-        - root-version: 6.24.06
           std: 20
         - root-version: 6.26.06
           std: 11
@@ -113,6 +110,7 @@ jobs:
       shell: bash
       run: cmake --build build --config ${{ matrix.build_type }}
 
+
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -127,6 +125,7 @@ jobs:
         flag-name: run-${{ matrix.compiler }}-c++${{ matrix.std }}-cmake-${{ matrix.cmake-version }}-root-${{ matrix.root-version }}
         parallel: true
 
+
   finish:
     needs: test
     runs-on: ubuntu-latest
@@ -136,3 +135,25 @@ jobs:
       with:
         github-token: ${{ secrets.github_token }}
         parallel-finished: true
+
+
+  lib_types:
+    name: 'lib type: ${{ matrix.lib_type.name }}'
+    strategy:
+      fail-fast: false
+      matrix:
+        lib_type:
+        - {
+            name: shared,
+            args: '-DBUILD_SHARED_LIBS=YES'
+          }
+        - {
+            name: static,
+            args: '-DBUILD_SHARED_LIBS=NO'
+          }
+    uses: rlalik/actions/.github/workflows/build_with_root.yml@master
+    with:
+      os: ubuntu-latest
+      std: 17
+      root-version: 6.26.06
+      cmake_args: ${{ matrix.lib_type.args }}

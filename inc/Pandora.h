@@ -20,23 +20,28 @@
 #ifndef RT_PANDORA_H
 #define RT_PANDORA_H
 
+#include "Pandora/export.h"
+
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <TH1.h>
-#include <TH2.h>
-#include <TH3.h>
 #include <TNamed.h>
 #include <TObjArray.h>
-#include <TObjString.h>
 
 class TDirectory;
 class TCanvas;
 class TFile;
 
+namespace RT
+{
+
+#ifndef __CINT__
+struct PANDORA_EXPORT PandoraObj : public TNamed
+#else
 struct PandoraObj : public TNamed
+#endif
 {
     PandoraObj() { objects_names.SetOwner(); }
 
@@ -47,7 +52,11 @@ struct PandoraObj : public TNamed
     ClassDef(PandoraObj, 1);
 };
 
+#ifndef __CINT__
+class PANDORA_EXPORT Pandora
+#else
 class Pandora
+#endif
 {
 public:
     Pandora(const char* name);
@@ -392,5 +401,7 @@ template <class T> T* Pandora::RegGraph(const char* name, int points)
     }
     return h;
 }
+
+}; // namespace RT
 
 #endif // RT_PANDORA_H

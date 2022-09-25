@@ -2,10 +2,12 @@
 
 #include <Pandora.h>
 
+#include <TH1.h>
+
 TEST(BasicTests, CopyMoveCase)
 {
-    Pandora* sf1 = new Pandora("test_factory_1");
-    Pandora* sf2 = new Pandora("test_factory_2");
+    RT::Pandora* sf1 = new RT::Pandora("test_factory_1");
+    RT::Pandora* sf2 = new RT::Pandora("test_factory_2");
 
     TH1I* h1 = sf1->RegTH1<TH1I>("h1", "h1", 10, 0, 10, 1);
 

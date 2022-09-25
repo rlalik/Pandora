@@ -1,6 +1,7 @@
 #include "Pandora.h"
 
 #include <TFile.h>
+#include <TH1.h>
 
 #include <cstdlib>
 
@@ -48,7 +49,7 @@ int main(int argc, char** argv)
     }
 
     // create box
-    Pandora* box = new Pandora("box1");
+    RT::Pandora* box = new RT::Pandora("box1");
 
     // import from file and register in the box
     // data will be stored in memory, file remains open

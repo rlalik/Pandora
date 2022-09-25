@@ -22,10 +22,14 @@
 #include <TCanvas.h>
 #include <TCollection.h>
 #include <TDirectory.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
 #include <TF1.h>
 #include <TFile.h>
 #include <TKey.h>
 #include <TObject.h>
+#include <TObjString.h>
 
 #include <iomanip>
 #include <iostream>
@@ -66,6 +70,9 @@ float Normalize(TH1* h, TH1* href, bool extended = false)
     }
     return 0.;
 }
+
+namespace RT
+{
 
 Pandora::Pandora(const char* name)
     : fac_name(name), obj_name(name), dir_name(name), source(nullptr), shared(kFALSE),
@@ -856,3 +863,5 @@ int Pandora::findIndexByRawname(const std::string& name) const
 
     return -1;
 }
+
+}; // namespace RT

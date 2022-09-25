@@ -5,8 +5,10 @@
 
 #include "Pandora.h"
 
-#include "TCanvas.h"
-#include "TFile.h"
+#include <TCanvas.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TFile.h>
 
 const int bar_limit = 50;
 const char hist_pattern[] = "hist_%06d";
@@ -22,7 +24,7 @@ void write_func()
 {
     // create box
 
-    Pandora* box = new Pandora("box1");
+    RT::Pandora* box = new RT::Pandora("box1");
 
     // fill with histograms
     char hname[100];
@@ -55,7 +57,7 @@ void write_func()
 void loop_read_func()
 {
     // create box
-    Pandora* box = new Pandora("box1");
+    RT::Pandora* box = new RT::Pandora("box1");
 
     // import from file and register in the box
     // data will be stored in memory, file remains open

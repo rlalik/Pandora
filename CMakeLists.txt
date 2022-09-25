@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(
   Pandora
-  VERSION 0.9.1
+  VERSION 0.9.2
   LANGUAGES CXX)
 
-include(GNUInstallDirs)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME})
+include(GNUInstallDirs)
 
 # ==============================================================================
 # fetch external content
@@ -21,98 +20,147 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(cmake_tools)
 list(APPEND CMAKE_MODULE_PATH ${cmake_tools_SOURCE_DIR})
-include(check_3rd_party_tool)
+include(find_or_fetch_package)
 # ------------------------------------------------------------------------------
 # cmake - scripts
-check_3rd_party_tool(
-  cmake-scripts 9999 https://github.com/StableCoder/cmake-scripts TAG
-  774a07ece3945b4f72e3ddc11646ab7cc9a349e2 AUTO)
 
-list(APPEND CMAKE_MODULE_PATH ${cmake-scripts_SOURCE_DIR})
-# include(c++-standards)
-include(code-coverage)
-include(sanitizers)
-# include(doxygen) include(formatting) include(tools)
-# ==============================================================================
+# conditional modules
+option(ENABLE_ADVANCE_TOOLS "Enables advanced tools" OFF)
+if(ENABLE_ADVANCE_TOOLS)
+  FetchContent_Declare(
+    cmake-scripts
+    GIT_REPOSITORY https://github.com/StableCoder/cmake-scripts
+    GIT_TAG main)
+  FetchContent_GetProperties(cmake-scripts)
+  if(NOT cmake-scripts_POPULATED)
+    FetchContent_Populate(cmake-scripts)
+    list(APPEND CMAKE_MODULE_PATH ${cmake-scripts_SOURCE_DIR})
+    message(STATUS "${cmake-scripts_SOURCE_DIR}")
+  endif()
+  include(sanitizers)
+  include(code-coverage)
+  include(tools)
+  include_what_you_use(-Xiwyu;--error_always)
+endif()
 
 # find ROOT
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS Gpad)
-include(${ROOT_USE_FILE})
 
-add_library(${CMAKE_PROJECT_NAME} SHARED src/Pandora.cpp)
-add_library(RT::${CMAKE_PROJECT_NAME} ALIAS ${CMAKE_PROJECT_NAME})
+# ==============================================================================
+# general
+# if(NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET AND NOT DEFINED
+#                                                CMAKE_VISIBILITY_INLINES_HIDDEN)
+#   set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+#   set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+# endif()
+# 
+# if(DEFINED Pandora_SHARED_LIBS)
+#   set(BUILD_SHARED_LIBS "${Pandora_SHARED_LIBS}")
+# endif()
+
+# ==============================================================================
+# build project
+
+include(shared_or_static)
+shared_or_static(Pandora)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+add_library(Pandora ${Pandora_LIBRARY_TYPE} src/Pandora.cpp)
+add_library(RT::Pandora ALIAS Pandora)
+
+set_target_properties(
+  Pandora
+  PROPERTIES VERSION ${PROJECT_VERSION}
+             SOVERSION ${PROJECT_VERSION_MAJOR}
+             PUBLIC_HEADER "inc/Pandora.h")
 
 target_include_directories(
-  ${CMAKE_PROJECT_NAME}
+  Pandora
   PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
+         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/inc>
   PRIVATE ${CMAKE_SOURCE_DIR}/inc)
 
 if(ROOT_VERSION VERSION_LESS 6)
-  root_generate_dictionary(G__${CMAKE_PROJECT_NAME}_cc Pandora.h LINKDEF
-                           LinkDef.h)
-  target_sources(${CMAKE_PROJECT_NAME} PRIVATE G__${CMAKE_PROJECT_NAME}_cc)
-  target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC Gpad)
+  include(Root5to6Comp)
+  include_directories(${CMAKE_BINARY_DIR}/include)
+  root_generate_dictionary(G__Pandora_cc Pandora.h LINKDEF LinkDef.h)
+  target_sources(Pandora PRIVATE G__Pandora_cc)
 else()
-  root_generate_dictionary(G__${CMAKE_PROJECT_NAME}_cc Pandora.h MODULE
-                           ${CMAKE_PROJECT_NAME} LINKDEF LinkDef.h)
-  target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ROOT::Gpad)
-
+  root_generate_dictionary(G__Pandora_cc Pandora.h MODULE Pandora LINKDEF
+                           LinkDef.h)
 endif()
 
-set_target_properties(
-  ${CMAKE_PROJECT_NAME}
-  PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR}
-             VERSION ${PROJECT_VERSION}
-             PUBLIC_HEADER "inc/Pandora.h")
+target_link_libraries(Pandora PUBLIC ROOT::Gpad)
+
+# target export
+
+include(GenerateExportHeader)
+generate_export_header(Pandora EXPORT_FILE_NAME include/Pandora/export.h)
+target_compile_definitions(
+  Pandora PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:PANDORA_STATIC_DEFINE>")
+target_include_directories(
+  Pandora PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>")
+
+# installing
+
+if(NOT DEFINED Pandora_INSTALL_CMAKEDIR)
+  set(Pandora_INSTALL_CMAKEDIR
+      "${CMAKE_INSTALL_LIBDIR}/cmake/Pandora"
+      CACHE STRING "Path to Pandora CMake files")
+endif()
 
 install(
-  TARGETS ${CMAKE_PROJECT_NAME}
-  EXPORT ${CMAKE_PROJECT_NAME}Targets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  TARGETS Pandora
+  EXPORT Pandora_Targets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          COMPONENT Libraries
+          NAMELINK_COMPONENT Development
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   INCLUDES
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT Development)
+
+install(
+  DIRECTORY ${Pandora_BINARY_DIR}/include/
+  TYPE INCLUDE
+  COMPONENT Development)
 
 # Export the package for use from the build-tree (this registers the build-tree
 # with a global CMake-registry)
-export(PACKAGE ${CMAKE_PROJECT_NAME})
+export(PACKAGE Pandora)
+
+if(BUILD_SHARED_LIBS)
+  set(type shared)
+else()
+  set(type static)
+endif()
 
 install(
-  EXPORT ${CMAKE_PROJECT_NAME}Targets
-  FILE ${CMAKE_PROJECT_NAME}Targets.cmake
+  EXPORT Pandora_Targets
+  FILE Pandora-${type}-targets.cmake
   NAMESPACE RT::
-  DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
+  DESTINATION ${Pandora_INSTALL_CMAKEDIR}
   COMPONENT dev)
 
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_CMAKEDIR}
-  # PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_BINDIR
-)
+  ${CMAKE_CURRENT_BINARY_DIR}/PandoraConfig.cmake
+  INSTALL_DESTINATION ${Pandora_INSTALL_CMAKEDIR})
 
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion)
+write_basic_package_version_file(PandoraConfigVersion.cmake
+                                 COMPATIBILITY SameMajorVersion)
 
-export(
-  EXPORT ${CMAKE_PROJECT_NAME}Targets
-  FILE ${CMAKE_CURRENT_BINARY_DIR}/cmake/${CMAKE_PROJECT_NAME}Targets.cmake
-  NAMESPACE ${CMAKE_PROJECT_NAME}::)
-
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/PandoraConfig.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/PandoraConfigVersion.cmake
+        DESTINATION ${Pandora_INSTALL_CMAKEDIR})
 
 add_subdirectory(examples)
+
+# tests
 enable_testing()
 add_subdirectory(tests)
 
@@ -120,7 +168,7 @@ add_subdirectory(tests)
 message(
   STATUS
     "<<< Configuration >>>
-Project:        ${CMAKE_PROJECT_NAME}
+Project:        Pandora
 
 Architecture:   ${CMAKE_LIBRARY_ARCHITECTURE}
 Build type      ${CMAKE_BUILD_TYPE}

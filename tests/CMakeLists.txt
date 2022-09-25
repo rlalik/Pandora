@@ -1,8 +1,6 @@
-check_3rd_party_tool(googletest 1.12.0 https://github.com/google/googletest.git
-                     TAG release-1.12.0 AUTO)
-list(APPEND CMAKE_MODULE_PATH ${cmake-scripts_SOURCE_DIR})
-
-find_package(GTest)
+set(INSTALL_GTEST OFF)
+find_or_fetch_package(GTest https://github.com/google/googletest.git
+                      VERSION 1.12.0  GIT_TAG release-1.12.0 AUTO)
 
 # configure_file(tests_config.h.in tests_config.h)
 
@@ -17,6 +15,9 @@ else()
 endif()
 
 target_link_libraries(gtests PRIVATE ${GTEST_TRG} RT::Pandora)
-target_code_coverage(gtests ALL)
+
+if(ENABLE_ADVANCE_TOOLS)
+  target_code_coverage(gtests ALL)
+endif()
 
 gtest_discover_tests(gtests)

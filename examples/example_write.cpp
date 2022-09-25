@@ -1,10 +1,12 @@
 #include "Pandora.h"
 
+#include <TH1.h>
+
 int main()
 {
     // create box
 
-    Pandora* box = new Pandora("box1");
+    RT::Pandora* box = new RT::Pandora("box1");
 
     // fill with histograms
     char hname[100];
