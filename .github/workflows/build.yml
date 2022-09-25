@@ -37,83 +37,102 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    name: "${{ matrix.compiler }} c++${{ matrix.std }} cmake-${{ matrix.cmake-version }} root-${{ matrix.root-version }}"
+    name: ${{ matrix.compiler }} c++${{ matrix.std }} cmake-${{ matrix.cmake-version }} root-${{ matrix.root-version }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         build_type: [ Release ]
-        compiler: [ gcc-9, gcc-10, gcc-11, gcc-12, clang-11, clang-12, clang-13, clang-14, clang-15 ]
-        cmake-version: [ 3.15, 3.24 ]
+        compiler: [ gcc-8, gcc-latest, clang-8, clang-latest ]
+        cmake-version: [ 3.15, '' ]
         root-version: [ 5.34.38, 6.24.06, 6.26.06 ]
         std: [ 11, 14, 17, 20 ]
         exclude:
-          - root-version: 5.34.38
-            std: 17
-          - root-version: 5.34.38
-            std: 20
-          - root-version: 6.24.06
-            std: 20
-          - root-version: 6.26.04
-            std: 11
+        - root-version: 5.34.38
+          std: 17
+        - root-version: 5.34.38
+          std: 20
+        - root-version: 6.24.06
+          std: 20
+        - root-version: 6.26.06
+          std: 11
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Print env
-        run: |
-          echo github.event.action: ${{ github.event.action }}
-          echo github.event_name: ${{ github.event_name }}
+    - name: Print env
+      run: |
+        echo github.event.action: ${{ github.event.action }}
+        echo github.event_name: ${{ github.event_name }}
 
-      - name: Setup compiler
-        id: setup_cc
-        uses: rlalik/setup-cpp-compiler@v1.1
-        with:
-          compiler: ${{ matrix.compiler }}
+    - name: Setup compiler
+      id: setup_cc
+      uses: rlalik/setup-cpp-compiler@v1.1
+      with:
+        compiler: ${{ matrix.compiler }}
 
-      - name: Install common dependencies
-        run: |
-          sudo apt update
-          sudo apt install libgtest-dev lcov rapidjson-dev libcurl4-openssl-dev -y
-          sudo apt install python3-numpy libtbb-dev libxxhash0 -y
-          cmake --version
-          wget http://gccb.if.uj.edu.pl/code/root-cpp${{ matrix.std }}_${{ matrix.root-version }}_amd64.deb
-          sudo dpkg -i root-cpp${{ matrix.std }}_${{ matrix.root-version }}_amd64.deb
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v1.12
+      with:
+        cmake-version: ${{ matrix.cmake-version }}
 
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout repository
-        uses: actions/checkout@v1
-        with:
-          submodules: recursive
+    - name: Install common dependencies
+      run: |
+        sudo apt update
+        sudo apt install libgtest-dev lcov rapidjson-dev libcurl4-openssl-dev -y
+        sudo apt install python3-numpy libtbb-dev libxxhash0 -y
+        wget http://gccb.if.uj.edu.pl/code/root-cpp${{ matrix.std }}_${{ matrix.root-version }}_amd64.deb
+        sudo dpkg -i root-cpp${{ matrix.std }}_${{ matrix.root-version }}_amd64.deb
 
-      - name: Setup CMake
-        uses: jwlawson/actions-setup-cmake@v1.12
-        with:
-          cmake-version: ${{ matrix.cmake-version }}
+    - name: Checkout repository
+      uses: actions/checkout@v1
+      with:
+        submodules: recursive
 
-      - name: Configure
-        shell: bash
-        env:
-          CC: ${{ steps.setup_cc.outputs.cc }}
-          CXX: ${{ steps.setup_cc.outputs.cxx }}
-        run: |
-          . /etc/profile
-          root-config --version
-          root-config --cflags
-          root-config --features
-          cmake \
-            -S . \
-            -B build \
-            -DENABLE_TESTING=On \
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DCMAKE_INSTALL_PREFIX:PATH=instdir \
-            ${{ matrix.root-version.cmake_args }}
+    - name: Configure
+      shell: bash
+      env:
+        CC: ${{ steps.setup_cc.outputs.cc }}
+        CXX: ${{ steps.setup_cc.outputs.cxx }}
+      run: |
+        . /etc/profile
+        cmake --version
+        root-config --version
+        root-config --cflags
+        root-config --features
+        cmake \
+          -S . \
+          -B build \
+          -DENABLE_TESTING=On \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_INSTALL_PREFIX:PATH=instdir \
+          ${{ matrix.root-version.cmake_args }}
 
-      - name: Build
-        shell: bash
-        run: cmake --build build --config ${{ matrix.build_type }}
+    - name: Build
+      shell: bash
+      run: cmake --build build --config ${{ matrix.build_type }}
 
-      - name: Test
-        shell: bash
-        run: cmake --build build --target test
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Test
+      shell: bash
+      run: cmake --build build --target test
+    - name: Coveralls Parallel
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        flag-name: run-${{ matrix.compiler }}-c++${{ matrix.std }}-cmake-${{ matrix.cmake-version }}-root-${{ matrix.root-version }}
+        parallel: true
+
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
