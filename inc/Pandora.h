@@ -80,25 +80,8 @@ public:
 
     // objects creation
     // histograms
-    template <class T>
-    T* RegTH1(const char* name, const char* title, int bins, double min, double max,
-              bool sumw2 = true);
-    template <class T>
-    T* RegTH1(const char* name, const char* title, int bins, double* arr, bool sumw2 = true);
-
-    template <class T>
-    T* RegTH2(const char* name, const char* title, int xbins, double xmin, double xmax, int ybins,
-              double ymin, double ymax, bool sumw2 = true);
-    template <class T>
-    T* RegTH2(const char* name, const char* title, int xbins, double* xarr, int ybins, double* yarr,
-              bool sumw2 = true);
-
-    template <class T>
-    T* RegTH3(const char* name, const char* title, int xbins, double xmin, double xmax, int ybins,
-              double ymin, double ymax, int zbins, double zmin, double zmax, bool sumw2 = true);
-    template <class T>
-    T* RegTH3(const char* name, const char* title, int xbins, double* xarr, int ybins, double* yarr,
-              int zbins, double* zarr, bool sumw2 = true);
+    template <typename T, typename... Types>
+    T* RegHist(const char* name, const char* title, Types... arguments);
 
     template <class T> T* RegGraph(const char* name, int points);
 
@@ -210,10 +193,8 @@ private:
     bool own_file;
 };
 
-template <class T>
-T* Pandora::RegTH1(const char* name, const char* title, int bins, double min, double max,
-                   bool sumw2)
-{
+template <typename T, typename... Types>
+T* Pandora::RegHist(const char* name, const char* title, Types... arguments) {
     std::string fullname = format(name);
     std::string fulltitle = format(title);
 
@@ -225,145 +206,8 @@ T* Pandora::RegTH1(const char* name, const char* title, int bins, double min, do
     T* h = (T*)getObject(hname, dir);
     if (!h)
     {
-        h = new T(hname.c_str(), fulltitle.c_str(), bins, min, max);
-        if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
-    }
-    if (h)
-    {
-        ObjectData od;
-        od.raw_name = name;
-        od.reg_name = fullname;
-        od.object = h;
-        regobjects.push_back(od);
-    }
-    return h;
-}
-
-template <class T>
-T* Pandora::RegTH1(const char* name, const char* title, int bins, double* arr, bool sumw2)
-{
-    std::string fullname = format(name);
-    std::string fulltitle = format(title);
-
-    std::string hname;
-    std::string dir;
-    splitDir(fullname, hname, dir);
-
-    // try to get object from file
-    T* h = (T*)getObject(hname, dir);
-    if (!h)
-    {
-        h = new T(hname.c_str(), fulltitle.c_str(), bins, arr);
-        if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
-    }
-    if (h)
-    {
-        ObjectData od;
-        od.raw_name = name;
-        od.reg_name = fullname;
-        od.object = h;
-        regobjects.push_back(od);
-    }
-    return h;
-}
-
-template <class T>
-T* Pandora::RegTH2(const char* name, const char* title, int xbins, double xmin, double xmax,
-                   int ybins, double ymin, double ymax, bool sumw2)
-{
-    std::string fullname = format(name);
-    std::string hname;
-    std::string dir;
-    splitDir(fullname, hname, dir);
-
-    // try to get object from file
-    T* h = (T*)getObject(hname, dir);
-    if (!h)
-    {
-        h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax);
-        if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
-    }
-    if (h)
-    {
-        ObjectData od;
-        od.raw_name = name;
-        od.reg_name = fullname;
-        od.object = h;
-        regobjects.push_back(od);
-    }
-    return h;
-}
-
-template <class T>
-T* Pandora::RegTH2(const char* name, const char* title, int xbins, double* xarr, int ybins,
-                   double* yarr, bool sumw2)
-{
-    std::string fullname = format(name);
-    std::string hname;
-    std::string dir;
-    splitDir(fullname, hname, dir);
-
-    // try to get object from file
-    T* h = (T*)getObject(hname, dir);
-    if (!h)
-    {
-        h = new T(hname.c_str(), title, xbins, xarr, ybins, yarr);
-        if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
-    }
-    if (h)
-    {
-        ObjectData od;
-        od.raw_name = name;
-        od.reg_name = fullname;
-        od.object = h;
-        regobjects.push_back(od);
-    }
-    return h;
-}
-
-template <class T>
-T* Pandora::RegTH3(const char* name, const char* title, int xbins, double xmin, double xmax,
-                   int ybins, double ymin, double ymax, int zbins, double zmin, double zmax,
-                   bool sumw2)
-{
-    std::string fullname = format(name);
-    std::string hname;
-    std::string dir;
-    splitDir(fullname, hname, dir);
-
-    // try to get object from file
-    T* h = (T*)getObject(hname, dir);
-    if (!h)
-    {
-        h = new T(hname.c_str(), title, xbins, xmin, xmax, ybins, ymin, ymax, zbins, zmin, zmax);
-        if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
-    }
-    if (h)
-    {
-        ObjectData od;
-        od.raw_name = name;
-        od.reg_name = fullname;
-        od.object = h;
-        regobjects.push_back(od);
-    }
-    return h;
-}
-
-template <class T>
-T* Pandora::RegTH3(const char* name, const char* title, int xbins, double* xarr, int ybins,
-                   double* yarr, int zbins, double* zarr, bool sumw2)
-{
-    std::string fullname = format(name);
-    std::string hname;
-    std::string dir;
-    splitDir(fullname, hname, dir);
-
-    // try to get object from file
-    T* h = (T*)getObject(hname, dir);
-    if (!h)
-    {
-        h = new T(hname.c_str(), title, xbins, xarr, ybins, yarr, zbins, zarr);
-        if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
+        h = new T(hname.c_str(), fulltitle.c_str(), arguments...);
+        // if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
     }
     if (h)
     {

@@ -9,8 +9,8 @@ TEST(BasicTests, CopyMoveCase)
     RT::Pandora* sf1 = new RT::Pandora("test_factory_1");
     RT::Pandora* sf2 = new RT::Pandora("test_factory_2");
 
-    TH1I* h1 = sf1->RegTH1<TH1I>("h1", "h1", 10, 0, 10, 1);
-
+    TH1I* h1 = sf1->RegHist<TH1I>("h1", "h1", 10, 0, 10);
+    h1->Sumw2();
     h1->Fill(3);
 
     *sf2 = *sf1;
