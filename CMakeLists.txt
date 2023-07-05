@@ -1,12 +1,11 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project(
   Pandora
-  VERSION 0.9.3
+  VERSION 0.9.4
   LANGUAGES CXX)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
 include(GNUInstallDirs)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # ==============================================================================
 # fetch external content
@@ -64,43 +63,43 @@ find_package(ROOT REQUIRED COMPONENTS Gpad)
 
 include(shared_or_static)
 shared_or_static(Pandora)
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-add_library(Pandora ${Pandora_LIBRARY_TYPE} src/Pandora.cpp)
-add_library(RT::Pandora ALIAS Pandora)
+add_library(pandora ${Pandora_LIBRARY_TYPE} source/pandora.cpp)
+add_library(pandora::pandora ALIAS pandora)
 
 set_target_properties(
-  Pandora
+  pandora
   PROPERTIES VERSION ${PROJECT_VERSION}
              SOVERSION ${PROJECT_VERSION_MAJOR}
-             PUBLIC_HEADER "inc/Pandora.h")
+             PUBLIC_HEADER "include/pandora.hpp")
 
 target_include_directories(
-  Pandora
+  pandora
   PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
          $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/inc>
-  PRIVATE ${CMAKE_SOURCE_DIR}/inc)
+  PRIVATE ${CMAKE_SOURCE_DIR}/inc
+)
 
 if(ROOT_VERSION VERSION_LESS 6)
   include(Root5to6Comp)
   include_directories(${CMAKE_BINARY_DIR}/include)
-  root_generate_dictionary(G__Pandora_cc Pandora.h LINKDEF LinkDef.h)
+  root_generate_dictionary(G__Pandora_cc pandora.hpp LINKDEF LinkDef.h)
   target_sources(Pandora PRIVATE G__Pandora_cc)
 else()
-  root_generate_dictionary(G__Pandora_cc Pandora.h MODULE Pandora LINKDEF
+  root_generate_dictionary(G__Pandora_cc pandora.hpp MODULE pandora LINKDEF
                            LinkDef.h)
 endif()
 
-target_link_libraries(Pandora PUBLIC ROOT::Gpad)
+target_link_libraries(pandora PUBLIC ROOT::Gpad)
 
 # target export
 
 include(GenerateExportHeader)
-generate_export_header(Pandora EXPORT_FILE_NAME include/Pandora/export.h)
+generate_export_header(pandora EXPORT_FILE_NAME include/Pandora/export.h)
 target_compile_definitions(
-  Pandora PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:PANDORA_STATIC_DEFINE>")
+  pandora PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:PANDORA_STATIC_DEFINE>")
 target_include_directories(
-  Pandora PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>")
+  pandora PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>")
 
 # installing
 
@@ -111,7 +110,7 @@ if(NOT DEFINED Pandora_INSTALL_CMAKEDIR)
 endif()
 
 install(
-  TARGETS Pandora
+  TARGETS pandora
   EXPORT Pandora_Targets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -140,7 +139,7 @@ endif()
 install(
   EXPORT Pandora_Targets
   FILE Pandora-${type}-targets.cmake
-  NAMESPACE RT::
+  NAMESPACE pandora::
   DESTINATION ${Pandora_INSTALL_CMAKEDIR}
   COMPONENT dev)
 

@@ -3,7 +3,7 @@
 #undef NDEBUG
 #include <assert.h>
 
-#include "Pandora.h"
+#include <pandora.hpp>
 
 #include <TCanvas.h>
 #include <TH1.h>
@@ -24,14 +24,14 @@ void write_func()
 {
     // create box
 
-    RT::Pandora* box = new RT::Pandora("box1");
+    pandora::pandora* box = new pandora::pandora("box1");
 
     // fill with histograms
     char hname[100];
     for (int i = 0; i < 100; ++i)
     {
         sprintf(hname, hist_pattern, i);
-        TH2F* h = box->RegHist<TH2F>(hname, "Histogram - loop", 100, -5, 5, 100, -5, 5);
+        TH2F* h = box->reg_hist<TH2F>(hname, "Histogram - loop", 100, -5, 5, 100, -5, 5);
 
         for (int j = 0; j < 100 * 100; ++j)
             h->SetBinContent(j + 1, sqrt(j));
@@ -44,24 +44,25 @@ void write_func()
         bar(i);
     }
 
-    box->rename("renamed_box");
-    box->chdir("renamed_directory");
+    box->add_placeholder("{dir}", "renamed_box");
+    box->add_placeholder("{dir2}", "subdir");
+    box->add_placeholder("{analysis}", "renamed_directory");
 
     // list objects
     // 	box->listRegisterdObjects();
 
     // export box to file
-    box->exportStructure("example_multi.root", true);
+    box->import_structure("example_multi.root", true);
 }
 
 void loop_read_func()
 {
     // create box
-    RT::Pandora* box = new RT::Pandora("box1");
+    pandora::pandora* box = new pandora::pandora("box1");
 
     // import from file and register in the box
     // data will be stored in memory, file remains open
-    TFile* f = box->importStructure("example_multi.root");
+    TFile* f = box->import_structure("example_multi.root");
 
     // list of registered objects
     // 	box->listRegisterdObjects();
@@ -71,7 +72,7 @@ void loop_read_func()
     for (int i = 0; i < 100; ++i)
     {
         sprintf(hname, hist_pattern, i);
-        TH2F* h1 = (TH2F*)box->getObject(hname);
+        TH2F* h1 = (TH2F*)box->get_object(hname);
         // if failed, then objects are not read from file
         assert(h1 != nullptr);
 

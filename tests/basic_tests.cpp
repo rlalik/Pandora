@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <Pandora.h>
+#include <pandora.hpp>
 
 TEST(BasicTests, Placeholders)
 {
-    RT::Pandora* sf = new RT::Pandora("test_factory");
+    pandora::pandora* sf = new pandora::pandora("test_factory");
 
     std::string pattern_string("%%d pattern");
     std::string test_string("test pattern");
     std::string replace_string("test");
 
-    std::string output_string = RT::Pandora::placeholder(pattern_string, "%%d", replace_string);
+    std::string output_string = pandora::pandora::replace_placeholder(pattern_string, "%%d", replace_string);
 
     EXPECT_EQ(output_string, test_string);
 

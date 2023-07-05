@@ -1,4 +1,4 @@
-#include "Pandora.h"
+#include <pandora.hpp>
 
 #include <TFile.h>
 #include <TH1.h>
@@ -49,20 +49,26 @@ int main(int argc, char** argv)
     }
 
     // create box
-    RT::Pandora* box = new RT::Pandora("box1");
+    pandora::pandora* box = new pandora::pandora("box1");
 
     // import from file and register in the box
     // data will be stored in memory, file remains open
-    TFile* f = box->importStructure("example.root", verbose_flag);
+    TFile* f = box->import_structure("example.root", verbose_flag);
 
     // list of registered objects
-    box->listRegisteredObjects();
+    box->list_registered_objects();
+
+    box->add_placeholder("{analysis}", "original_box");
+    box->add_placeholder("{dir}", "original_directory");
+    box->add_placeholder("{dir2}", "subdir");
+    box->add_placeholder("{analysis}", "renamed_box");
+    box->add_placeholder("{dir}", "renamed_directory");
 
     // you can fetch specific object by its name
-    TH1F* h1 = (TH1F*)box->getObject("dir1/hist1");
-    TH1F* h2 = (TH1F*)box->getObject("hist2");
-    TH1F* h3 = (TH1F*)box->getObject("hist3", "dir1/dir2");
-    TH1F* h4 = (TH1F*)box->getObject("@@@d/hist_@@@a_placeholders");
+    TH1F* h1 = (TH1F*)box->get_object("dir1/hist1");
+    TH1F* h2 = (TH1F*)box->get_object("hist2");
+    TH1F* h3 = (TH1F*)box->get_object("hist3", "dir1/dir2");
+    TH1F* h4 = (TH1F*)box->get_object("{dir}/{dir2}/hist_{analysis}_placeholders");
 
     // if failed, then objects are not read from file
     assert(h1 != nullptr);

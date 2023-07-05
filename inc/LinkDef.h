@@ -7,11 +7,11 @@
 #pragma link C++ nestedtypedef;
 
 /* clang-format off */
-#pragma link C++ namespace RT;
-#pragma link C++ defined_in namespace RT;
+#pragma link C++ namespace pandora;
+#pragma link C++ defined_in namespace pandora;
 
-#pragma link C++ class RT::Pandora-;
-#pragma link C++ class RT::PandoraObj;
+#pragma link C++ class pandora::pandora-;
+#pragma link C++ class pandora::pandora_obj;
 /* clang-format on */
 
 #endif
