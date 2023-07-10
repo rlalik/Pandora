@@ -24,8 +24,8 @@ TEST(BasicTests, CopyMoveCase)
     EXPECT_FLOAT_EQ(h2->GetBinContent(4), 1.0);
     EXPECT_FLOAT_EQ(h2->GetBinContent(6), 1.0);
 
-    EXPECT_EQ(0, sf2->findIndex(h2));
-    EXPECT_EQ(-1, sf2->findIndex(h1));
+    EXPECT_EQ(0, sf2->find_index(h2));
+    EXPECT_EQ(-1, sf2->find_index(h1));
 
     EXPECT_TRUE(sf2->name() != sf1->name());
 

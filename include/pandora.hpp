@@ -80,6 +80,7 @@ public:
 
     // TObject general
     TObject* reg_object(TObject* obj);
+    TObject* reg_object(TObject* obj, std::string raw_name);
     TObject* reg_object(const std::string& name);
 
     // register clone of the object
@@ -102,7 +103,7 @@ public:
     // print list of objects
     virtual void list_registered_objects() const;
 
-    virtual TObject* get_object(const std::string& name, const std::string& dir = "") const;
+    virtual TObject* get_object(const std::string& raw_name);
     static TObject* get_object(TDirectory* srcdir, const std::string& fullname);
     static TObject* get_object(TDirectory* srcdir, const std::string& name, const std::string& dir);
 
@@ -129,11 +130,13 @@ public:
     virtual void set_title_for_all(const TString& title);
     virtual std::string apply_placehodlers(const std::string& name) const;
 
-    virtual void call_function_on_objects(const pandora* box, void (*fun)(TObject* dst, const TObject* src));
+    virtual void call_function_on_objects(pandora* box, void (*fun)(TObject* dst, const TObject* src));
 
-    virtual int findIndex(TObject* obj) const;
-    virtual TObject* findObject(int index) const;
-    virtual int findIndexByRawname(const std::string& name) const;
+    virtual auto find_index(TObject* obj) const -> int;
+    virtual auto find_object(int index) const -> TObject*;
+    virtual auto find_index_by_raw_name(const std::string& name) const -> int;
+    virtual auto find_index_by_fullname(const std::string& fullname) const -> int;
+    virtual auto get_raw_name(int index) const -> std::string;
 
     virtual void set_objects_ownership(bool owner = true) { own_file = owner; }
 
@@ -157,7 +160,6 @@ public:
     struct object_data
     {
         std::string raw_name;
-        std::string fmtnames;
         std::string reg_name;
         TObject* object;
     };
@@ -184,19 +186,19 @@ template <typename T, typename... Types> T* pandora::reg_hist(const char* name, 
     std::string fullname = apply_placehodlers(name);
     std::string fulltitle = apply_placehodlers(title);
 
-    std::string objname;
-    std::string dir;
-    split_dir(fullname, objname, dir);
-
     // try to get object from file
-    T* obj = (T*)get_object(objname, dir);
+    T* obj = (T*)get_object(fullname);
     if (!obj)
     {
+        std::string objname;
+        std::string dir;
+        split_dir(fullname, objname, dir);
+
         obj = new T(objname.c_str(), fulltitle.c_str(), arguments...);
         // if (sumw2 and 0 == h->GetSumw2N()) h->Sumw2();
-    }
-    if (obj)
-    {
+
+        if (!obj) return nullptr;
+
         object_data od;
         od.raw_name = name;
         od.reg_name = fullname;
@@ -210,19 +212,19 @@ template <class T> auto pandora::reg_graph(const char* name, int points) -> T*
 {
     std::string fullname = apply_placehodlers(name);
 
-    std::string objname;
-    std::string dir;
-    split_dir(fullname, objname, dir);
-
     // try to get object from file
-    T* obj = (T*)get_object(objname, dir);
+    T* obj = (T*)get_object(fullname);
     if (!obj)
     {
+        std::string objname;
+        std::string dir;
+        split_dir(fullname, objname, dir);
+
         obj = new T(points);
         obj->SetName(objname.c_str());
-    }
-    if (obj)
-    {
+
+        if (!obj) return nullptr;
+
         object_data od;
         od.raw_name = name;
         od.reg_name = fullname;
@@ -237,20 +239,20 @@ auto pandora::reg_canvas(const char* name, const char* title, Types... arguments
 {
     std::string fulltitle = apply_placehodlers(title);
     std::string fullname = apply_placehodlers(name);
-    std::string objname;
-    std::string dir;
-    split_dir(fullname, objname, dir);
 
     // try to get object from file
-    TCanvas* obj = (TCanvas*)get_object(objname, dir); // fetching canvases from file
+    TCanvas* obj = (TCanvas*)get_object(name); // fetching canvases from file
     if (!obj)
     {
+        std::string objname;
+        std::string dir;
+        split_dir(fullname, objname, dir);
+
         obj = new TCanvas(objname.c_str(), fulltitle.c_str(), arguments...);
         // this line for code formatting
-    }
 
-    if (obj)
-    {
+        if (!obj) return nullptr;
+
         object_data od;
         od.raw_name = name;
         od.reg_name = fullname;

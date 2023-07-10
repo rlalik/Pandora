@@ -67,7 +67,7 @@ int main(int argc, char** argv)
     // you can fetch specific object by its name
     TH1F* h1 = (TH1F*)box->get_object("dir1/hist1");
     TH1F* h2 = (TH1F*)box->get_object("hist2");
-    TH1F* h3 = (TH1F*)box->get_object("hist3", "dir1/dir2");
+    TH1F* h3 = (TH1F*)box->get_object("dir1/dir2/hist3");
     TH1F* h4 = (TH1F*)box->get_object("{dir}/{dir2}/hist_{analysis}_placeholders");
 
     // if failed, then objects are not read from file

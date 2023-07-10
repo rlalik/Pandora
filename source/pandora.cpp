@@ -205,7 +205,10 @@ bool pandora::export_structure(TFile* f, bool verbose, const char* suffix)
 
     std::vector<object_data>::const_iterator it = regobjects.begin();
     for (; it != regobjects.end(); ++it)
+    {
+        if (verbose) std::cout << "Exporting " << it->reg_name.c_str() << std::endl;
         obj.objects_names.AddLast(new TObjString(it->reg_name.c_str()));
+    }
 
     placeholders.clear();
     fill_vector_from_map(obj.placeholders, placeholders);
@@ -244,7 +247,7 @@ bool pandora::import_structure(TFile* f, bool verbose, const char* suffix)
     placeholders.clear();
     fill_map_from_vector(placeholders, obj->placeholders);
 
-    for (uint i = 0; i < obj->objects_names.GetEntries(); ++i)
+    for (int i = 0; i < obj->objects_names.GetEntries(); ++i)
     {
         f->cd();
 
@@ -256,8 +259,8 @@ bool pandora::import_structure(TFile* f, bool verbose, const char* suffix)
         TObject* o = this->get_object(f, os->String().Data());
         if (o)
         {
-            this->reg_object(o);
-            if (verbose) std::cout << " [ done ] " << std::endl;
+            this->reg_object(o, os->String().Data());
+            if (verbose) std::cout << " [ success ] " << std::endl;
         }
         else
         {
@@ -270,43 +273,54 @@ bool pandora::import_structure(TFile* f, bool verbose, const char* suffix)
 
 TFile* pandora::import_structure(const char* filename, bool verbose, const char* suffix)
 {
-    source = new TFile(filename, "READ");
+    set_source(new TFile(filename, "READ"));
 
-    bool res = import_structure(source, verbose, suffix);
+    bool res = import_structure(get_source(), verbose, suffix);
 
     if (!res)
     {
-        source->Close();
-        source = nullptr;
+        get_source()->Close();
+        set_source(nullptr);
     }
 
-    return source;
+    return get_source();
 }
 
-TObject* pandora::get_object(const std::string& name, const std::string& dir) const
+TObject* pandora::get_object(const std::string& raw_name)
 {
+    std::string fullname = apply_placehodlers(raw_name);
+
     std::vector<object_data>::const_iterator it = regobjects.begin();
     for (; it != regobjects.end(); ++it)
     {
-        if (it->reg_name == name) return it->object;
+        if (it->reg_name == fullname) return it->object;
     }
 
     if (!source) return nullptr;
 
-    std::string fn = apply_placehodlers(name);
     TObject* obj = nullptr;
+    std::string dir; // FIXME
     if (dir.size())
-        obj = get_object(source, fn, dir);
+        obj = get_object(source, fullname, dir);
     else
-        obj = get_object(source, fn);
+        obj = get_object(source, fullname);
 
-    if (obj) return obj;
+    if (obj)
+    {
+        object_data od;
+        od.raw_name = raw_name;
+        od.reg_name = fullname;
+        od.object = obj;
+        regobjects.push_back(std::move(od));
+    }
 
-    return nullptr;
+    return obj;
 }
 
 TObject* pandora::get_object(TDirectory* srcdir, const std::string& fullname)
 {
+    if (!srcdir) return nullptr;
+
     std::string hname;
     std::string dir;
 
@@ -316,6 +330,8 @@ TObject* pandora::get_object(TDirectory* srcdir, const std::string& fullname)
 
 TObject* pandora::get_object(TDirectory* srcdir, const std::string& name, const std::string& dir)
 {
+    if (!srcdir) return nullptr;
+
     static pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
     pthread_mutex_lock(&mutex1);
@@ -388,20 +404,20 @@ TObject* pandora::reg_clone(TObject* obj, const std::string& new_name)
     return c;
 }
 
-TObject* pandora::reg_object(const std::string& name)
+TObject* pandora::reg_object(const std::string& raw_name)
 {
-    std::string fullname = apply_placehodlers(name);
+    std::string fullname = apply_placehodlers(raw_name);
     std::string hname;
     std::string dir;
     split_dir(fullname, hname, dir);
 
     // try to get object from file
-    TObject* obj = get_object(hname, dir);
+    TObject* obj = get_object(raw_name);
 
     if (obj)
     {
         object_data od;
-        od.raw_name = name;
+        od.raw_name = raw_name;
         od.reg_name = fullname;
         od.object = obj;
         regobjects.push_back(od);
@@ -410,13 +426,14 @@ TObject* pandora::reg_object(const std::string& name)
     return obj;
 }
 
-TObject* pandora::reg_object(TObject* obj)
+TObject* pandora::reg_object(TObject* obj, std::string raw_name)
 {
     if (obj)
     {
+        auto fullname = apply_placehodlers(raw_name);
         object_data od;
-        od.raw_name = obj->GetName();
-        od.reg_name = obj->GetName();
+        od.raw_name = raw_name;
+        od.reg_name = fullname;
         od.object = obj;
         regobjects.push_back(od);
     }
@@ -536,7 +553,7 @@ pandora& pandora::operator+=(const pandora& fa)
             if ((fa.regobjects.size() <= i) or (regobjects[i].raw_name != fa.regobjects[i].raw_name))
             {
                 // search for correct rawname index
-                fa_i = fa.findIndexByRawname(regobjects[i].raw_name);
+                fa_i = fa.find_index_by_raw_name(regobjects[i].raw_name);
 
                 // if not found, skip this object
                 if (fa_i == -1) continue;
@@ -600,7 +617,7 @@ pandora& pandora::operator/=(const pandora& fa)
             if ((fa.regobjects.size() <= i) or (regobjects[i].raw_name != fa.regobjects[i].raw_name))
             {
                 // search for correct rawname index
-                fa_i = fa.findIndexByRawname(regobjects[i].raw_name);
+                fa_i = fa.find_index_by_raw_name(regobjects[i].raw_name);
 
                 // if not found, skip this object
                 if (fa_i == -1) continue;
@@ -737,7 +754,7 @@ void pandora::print_integrals() const
     }
 }
 
-void pandora::call_function_on_objects(const pandora* box, void (*fun)(TObject* dst, const TObject* src))
+void pandora::call_function_on_objects(pandora* box, void (*fun)(TObject* dst, const TObject* src))
 {
     for (size_t i = 0; i < regobjects.size(); ++i)
     {
@@ -755,7 +772,7 @@ void pandora::reset()
     }
 }
 
-int pandora::findIndex(TObject* obj) const
+auto pandora::find_index(TObject* obj) const -> int
 {
     for (uint i = 0; i < regobjects.size(); ++i)
         if (regobjects[i].object == obj) return i;
@@ -763,7 +780,7 @@ int pandora::findIndex(TObject* obj) const
     return -1;
 }
 
-TObject* pandora::findObject(int index) const
+auto pandora::find_object(int index) const -> TObject*
 {
     if (index >= 0 and index < (int)regobjects.size())
         return regobjects[index].object;
@@ -771,12 +788,28 @@ TObject* pandora::findObject(int index) const
         return nullptr;
 }
 
-int pandora::findIndexByRawname(const std::string& name) const
+auto pandora::find_index_by_raw_name(const std::string& name) const -> int
 {
     for (uint i = 0; i < regobjects.size(); ++i)
         if (name == regobjects[i].raw_name) return i;
 
     return -1;
+}
+
+auto pandora::find_index_by_fullname(const std::string& fullname) const -> int
+{
+    for (uint i = 0; i < regobjects.size(); ++i)
+        if (fullname == regobjects[i].reg_name) return i;
+
+    return -1;
+}
+
+auto pandora::get_raw_name(int index) const -> std::string
+{
+    if (index >= 0 and index < (int)regobjects.size())
+        return regobjects[index].raw_name;
+    else
+        return "";
 }
 
 }; // namespace pandora
