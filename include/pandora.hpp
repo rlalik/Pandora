@@ -249,6 +249,9 @@ auto pandora::reg_canvas(const char* name, const char* title, Types... arguments
         split_dir(fullname, objname, dir);
 
         obj = new TCanvas(objname.c_str(), fulltitle.c_str(), arguments...);
+        auto w = std::get<0>(std::forward_as_tuple(arguments...));
+        auto h = std::get<1>(std::forward_as_tuple(arguments...));
+        obj->SetCanvasSize(w, h);
         // this line for code formatting
 
         if (!obj) return nullptr;

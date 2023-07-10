@@ -259,7 +259,20 @@ bool pandora::import_structure(TFile* f, bool verbose, const char* suffix)
         TObject* o = this->get_object(f, os->String().Data());
         if (o)
         {
-            this->reg_object(o, os->String().Data());
+            if (o->InheritsFrom("TCanvas"))
+            {
+                TCanvas* old_can = dynamic_cast<TCanvas*>(o);
+                TCanvas* can = new TCanvas(old_can->GetName(), old_can->GetTitle());
+                can->SetCanvasSize(old_can->GetWw(), old_can->GetWh());
+                auto l = old_can->GetListOfPrimitives();
+                for (int i = 0; i < l->GetEntries(); ++i)
+                {
+                    auto ooo = l->At(i)->Clone();
+                    can->GetListOfPrimitives()->AddLast(ooo->Clone());
+                }
+                this->reg_object(can, os->String().Data());
+            }
+            else { this->reg_object(o, os->String().Data()); }
             if (verbose) std::cout << " [ success ] " << std::endl;
         }
         else
